@@ -2,9 +2,9 @@ const { goals, Movements } = require('mineflayer-pathfinder')
 
 const interactable = require('./lib/interactable.json')
 
-function wait (ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
 
-function inject (bot) {
+function inject(bot) {
   if (!bot.pathfinder) {
     throw new Error('pathfinder must be loaded before builder')
   }
@@ -24,7 +24,7 @@ function inject (bot) {
 
   bot.builder.currentBuild = null
 
-  async function equipCreative (id) {
+  async function equipCreative(id) {
     if (bot.inventory.items().length > 30) {
       bot.chat('/clear')
       await wait(1000)
@@ -39,7 +39,7 @@ function inject (bot) {
     await bot.equip(item, 'hand')
   }
 
-  async function equipItem (id) {
+  async function equipItem(id) {
     if (bot.heldItem?.type === id) return
     const item = bot.inventory.findInventoryItem(id, null)
     if (!item) {
@@ -48,7 +48,7 @@ function inject (bot) {
     await bot.equip(item.type, 'hand')
   }
 
-  async function materialCallback (item, noMaterialCallback) {
+  async function materialCallback(item, noMaterialCallback) {
     if (noMaterialCallback && typeof noMaterialCallback === 'function') {
       const p = new Promise((resolve, reject) => {
         try {
@@ -115,9 +115,9 @@ function inject (bot) {
       }
       actions.sort((a, b) => {
         let dA = a.pos.offset(0.5, 0.5, 0.5).distanceSquared(bot.entity.position)
-        dA += (a.pos.y - bot.entity.position.y) * 100
+        dA += (a.pos.y - bot.entity.position.y) * 1000
         let dB = b.pos.offset(0.5, 0.5, 0.5).distanceSquared(bot.entity.position)
-        dB += (b.pos.y - bot.entity.position.y) * 100
+        dB += (b.pos.y - bot.entity.position.y) * 1000
         return dA - dB
       })
       const action = actions[0]
@@ -126,6 +126,13 @@ function inject (bot) {
       try {
         if (action.type === 'place') {
           const item = build.getItemForState(action.state)
+          if (bot.inventory.items().length > 30) {
+            bot.chat('/clear')
+            await wait(1000)
+          }
+          await bot.chat('/give builder ' + item.name + ' 2')
+          await wait(100)
+
           console.log('Selecting ' + item.displayName)
 
           const properties = build.properties[action.state]
@@ -154,7 +161,7 @@ function inject (bot) {
           }
 
           try {
-            const amount = bot.inventory.count(id)
+            const amount = bot.inventory.count(item.id)
             if (amount <= materialMin) throw Error('no_blocks')
             await equipItem(item.id) // equip item after pathfinder
           } catch (e) {
@@ -174,6 +181,7 @@ function inject (bot) {
           const faceAndRef = goal.getFaceAndRef(bot.entity.position.floored().offset(0.5, 1.6, 0.5))
           if (!faceAndRef) { throw new Error('no face and ref') }
 
+          console.log(faceAndRef)
           bot.lookAt(faceAndRef.to, true)
 
           const refBlock = bot.blockAt(faceAndRef.ref)
