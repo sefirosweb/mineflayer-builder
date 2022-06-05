@@ -4,8 +4,8 @@ const { builder, Build } = require('mineflayer-builder')
 const { Schematic } = require('prismarine-schematic')
 const { pathfinder } = require('mineflayer-pathfinder')
 const mineflayer = require('mineflayer')
+const { Vec3 } = require('vec3')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
-
 
 const bot = mineflayer.createBot({
   host: process.argv[2] || 'localhost',
@@ -17,17 +17,14 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(builder)
 
-function wait (ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
 
 bot.once('spawn', async () => {
-  mineflayerViewer(bot, { port: 3000 })
-
   bot.on('path_update', (r) => {
     const path = [bot.entity.position.offset(0, 0.5, 0)]
     for (const node of r.path) {
       path.push({ x: node.x, y: node.y + 0.5, z: node.z })
     }
-    bot.viewer.drawLine('path', path, 0xff00ff)
   })
 
   while (!bot.entity.onGround) {
@@ -36,7 +33,7 @@ bot.once('spawn', async () => {
   bot.on('messagestr', (message, messagePosition, jsonMsg) => {
     if (message.includes('start')) {
       start()
-    } 
+    }
   })
   bot.on('chat', async (username, message) => {
     console.info(username, message)
@@ -51,9 +48,12 @@ bot.once('spawn', async () => {
       bot.builder.continue()
     }
   })
+
+
+  build('chest.schem')
 })
 
-async function build (name) {
+async function build(name) {
   const schematicName = !name.endsWith('.schem') ? name + '.schem' : name
   const filePath = path.resolve(__dirname, '../schematics/' + schematicName)
   if (!fileExists(filePath)) {
@@ -61,18 +61,20 @@ async function build (name) {
     return
   }
   const schematic = await Schematic.read(await fs.readFile(filePath), bot.version)
-  const at = bot.entity.position.floored()
+  const at = new Vec3(415, 122, -324)
+  // bot.entity.position.floored()
   bot.chat('Building at ', at)
   const build = new Build(schematic, bot.world, at)
+  bot.chat('/fill 416 122 -324 415 122 -324 minecraft:air')
   bot.builder.build(build, noMaterial)
 }
 
-async function noMaterial (item, resolve, reject) {
+async function noMaterial(item, resolve, reject) {
   console.info('Building interrupted missing', item?.name)
   reject()
 }
 
-async function start () {
+async function start() {
   bot.chat('/clear')
   await wait(1000)
   bot.chat('/give builder dirt')
@@ -87,7 +89,7 @@ async function start () {
   bot.builder.build(build)
 }
 
-async function fileExists (path) {  
+async function fileExists(path) {
   try {
     await fs.promises.access(path)
     return true
@@ -95,3 +97,4 @@ async function fileExists (path) {
     return false
   }
 }
+
