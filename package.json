@@ -5,23 +5,27 @@
   "main": "index.js",
   "scripts": {
     "test": "standard",
-    "fix": "standard --fix"
+    "fix": "standard --fix",
+    "update": "npx npm-check-updates",
+    "docker": "docker run --rm -it -v ~/.gitconfig:/etc/gitconfig -v $PWD:/home/app -w /home/app -u node -p 9229:9229 node:16.13-bullseye /bin/bash",
+    "one": "nodemon --inspect=0.0.0.0:9229 examples/builder.js host.docker.internal 25565"
   },
   "author": "Karang",
   "license": "MIT",
   "dependencies": {
-    "minecraft-data": "^2.75.0",
-    "mineflayer-pathfinder": "^1.6.2",
-    "prismarine-world": "^3.3.1",
-    "prismarine-block": "^1.7.3",
-    "prismarine-item": "^1.5.0",
-    "prismarine-schematic": "^1.2.1",
+    "minecraft-data": "^3.1.1",
+    "mineflayer-pathfinder": "^2.1.1",
+    "prismarine-block": "^1.16.3",
+    "prismarine-item": "^1.11.5",
+    "prismarine-schematic": "^1.2.3",
+    "prismarine-world": "^3.6.1",
     "vec3": "^0.1.7"
   },
   "devDependencies": {
     "mineflayer": "PrismarineJS/mineflayer",
     "mineflayer-builder": "file:.",
-    "prismarine-viewer": "^1.13.3",
-    "standard": "^16.0.1"
+    "nodemon": "^2.0.16",
+    "prismarine-viewer": "^1.23.0",
+    "standard": "^17.0.0"
   }
 }
