@@ -1,8 +1,19 @@
 const { goals, Movements } = require('mineflayer-pathfinder')
+const { Vec3 } = require('vec3')
+
 
 const interactable = require('./lib/interactable.json')
 
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
+
+const faceDir = {
+  down: new Vec3(0, -1, 0),
+  up: new Vec3(0, 1, 0),
+  south: new Vec3(0, 0, 1),
+  north: new Vec3(0, 0, -1),
+  east: new Vec3(1, 0, 0),
+  west: new Vec3(-1, 0, 0)
+}
 
 function inject(bot) {
   if (!bot.pathfinder) {
@@ -12,7 +23,9 @@ function inject(bot) {
   let interruptBuilding = false
 
   const mcData = require('minecraft-data')(bot.version)
-  const Item = require('prismarine-item')(bot.version)
+  const Item = require('prismarine-item')(bot.versio)
+  const { digBlock } = require('./dig_block')(bot)
+  const { goBlock } = require('./go_block')(bot)
 
   const movements = new Movements(bot, mcData)
   // movements.canDig = false
@@ -90,8 +103,6 @@ function inject(bot) {
     bot.builder.build(bot.builder.currentBuild)
   }
 
-  // /fill ~-20 ~ ~-20 ~20 ~10 ~20 minecraft:air
-
   bot.builder.build = async (build, noMaterialCallback, options = {}) => {
     let errorNoBlocks
     bot.builder.currentBuild = build
@@ -108,7 +119,7 @@ function inject(bot) {
         return
       }
       const actions = build.getAvailableActions()
-      console.log(`${actions.length} available actions`)
+      // console.log(`${actions.length} available actions`)
       if (actions.length === 0) {
         console.log('No actions to perform')
         break
@@ -121,7 +132,7 @@ function inject(bot) {
         return dA - dB
       })
       const action = actions[0]
-      console.log('action', action)
+      // console.log('action', action)
 
       try {
         if (action.type === 'place') {
@@ -130,10 +141,14 @@ function inject(bot) {
             bot.chat('/clear')
             await wait(1000)
           }
-          await bot.chat('/give builder ' + item.name + ' 2')
-          await wait(100)
+          const amountItem = bot.inventory.count(item.id)
 
-          console.log('Selecting ' + item.displayName)
+          if (amountItem === 0) {
+            await bot.chat('/give builder ' + item.name + ' 2')
+            await wait(100)
+          }
+
+          // console.log('Selecting ' + item.displayName)
 
           const properties = build.properties[action.state]
           const half = properties.half ? properties.half : properties.type
@@ -141,7 +156,7 @@ function inject(bot) {
           const faces = build.getPossibleDirections(action.state, action.pos)
           for (const face of faces) {
             const block = bot.blockAt(action.pos.plus(face))
-            console.log(face, action.pos.plus(face), block.name)
+            // console.log(face, action.pos.plus(face), block.name)
           }
 
           const { facing, is3D } = build.getFacing(action.state, properties.facing)
@@ -181,7 +196,7 @@ function inject(bot) {
           const faceAndRef = goal.getFaceAndRef(bot.entity.position.floored().offset(0.5, 1.6, 0.5))
           if (!faceAndRef) { throw new Error('no face and ref') }
 
-          console.log(faceAndRef)
+          // console.log(faceAndRef)
           bot.lookAt(faceAndRef.to, true)
 
           const refBlock = bot.blockAt(faceAndRef.ref)
@@ -193,12 +208,24 @@ function inject(bot) {
 
           // const block = bot.world.getBlock(action.pos)
           const worldState = bot.world.getBlockStateId(action.pos)
+          const blockFacingTo = bot.blockAt(action.pos)._properties?.facing
+          console.log(blockFacingTo)
           // Does not work for 1.12 as blocks dont have the stateId property
-          if (worldState !== action.state) {
-            console.log('expected', properties)
-            console.log('got', worldState)
+
+          if (properties.facing !== blockFacingTo) {
+            console.log('Wrong facing block', properties)
+            console.log('got', blockFacingTo)
+            await digBlock(action.pos)
+
+            const faceDirOffset = faceDir[properties.facing]
+            const newPosition = action.pos.offset(faceDirOffset.x, faceDirOffset.y, faceDirOffset.z)
+
+            await wait(500)
+            console.log(newPosition)
+            await goBlock(newPosition)
+          } else {
+            build.removeAction(action)
           }
-          build.removeAction(action)
         } else if (action.type === 'dig') {
           await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
           build.removeAction(action)
