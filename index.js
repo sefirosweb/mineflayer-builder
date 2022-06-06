@@ -221,7 +221,6 @@ function inject(bot) {
             const newPosition = action.pos.offset(faceDirOffset.x, faceDirOffset.y, faceDirOffset.z)
 
             await wait(500)
-            console.log(newPosition)
             await goBlock(newPosition)
           } else {
             build.removeAction(action)
