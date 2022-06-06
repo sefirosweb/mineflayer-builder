@@ -84,7 +84,7 @@ async function start() {
   bot.chat('/tp 197 4 121')
   await wait(1000)
   const at = bot.entity.position.floored()
-  console.log('Building at ', at)
+  // console.log('Building at ', at)
   const build = new Build(schematic, bot.world, at)
   bot.builder.build(build)
 }
