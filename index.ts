@@ -1,6 +1,8 @@
-const { goals, Movements } = require('mineflayer-pathfinder')
-const { Vec3 } = require('vec3')
+//@ts-nocheck
+import { Vec3 } from 'vec3'
+import { Bot } from 'mineflayer'
 
+const { goals, Movements } = require('mineflayer-pathfinder')
 
 const interactable = require('./lib/interactable.json')
 
@@ -15,7 +17,9 @@ const faceDir = {
   west: new Vec3(-1, 0, 0)
 }
 
-function inject(bot) {
+export { Build } from './lib/Build'
+
+export const builder = (bot: Bot) => {
   if (!bot.pathfinder) {
     throw new Error('pathfinder must be loaded before builder')
   }
@@ -260,9 +264,4 @@ function inject(bot) {
     }
     bot.builder.currentBuild = null
   }
-}
-
-module.exports = {
-  Build: require('./lib/Build'),
-  builder: inject
 }

@@ -1,13 +1,32 @@
 //@ts-nocheck
-const { Vec3 } = require('vec3')
-const facingData = require('./facingData.json')
 
-const { getShapeFaceCenters } = require('mineflayer-pathfinder/lib/shapes')
+import { Vec3 } from 'vec3'
+//@ts-ignore
+import facingData from './facingData.json'
+import minecraftDataLoader, { Item } from 'minecraft-data'
 
-class Build {
+//@ts-ignore
+import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
+//@ts-ignore
+import { Schematic } from 'prismarine-schematic'
+import { Block } from 'prismarine-block'
 
-  constructor(schematic, world, at) {
+export class Build {
+  schematic: Schematic
+  at: Vec3
+  min: Vec3
+  max: Vec3
+  breakNoneAir: boolean
+  actions: Array<Action>
+  blocks: Record<number, Block>
+  items: Record<number, Item>
+  properties: Record<number, BlockProperty>
+
+  world: any
+
+  constructor(schematic: Schematic, world: any, at: Vec3) {
     this.schematic = schematic
+    //@ts-ignore
     this.world = world
     this.at = at
 
@@ -21,7 +40,7 @@ class Build {
 
     // Cache of blockstate to block
     const Block = require('prismarine-block')(schematic.version)
-    const mcData = require('minecraft-data')(schematic.version)
+    const mcData = minecraftDataLoader(schematic.version)
     this.blocks = {}
     this.properties = {}
     this.items = {}
@@ -57,16 +76,16 @@ class Build {
     }
   }
 
-  updateBlock(pos) {
+  updateBlock() {
     // is in area ?
     this.updateActions()
   }
 
-  getItemForState(stateId) {
+  getItemForState(stateId: number) {
     return this.items[stateId]
   }
 
-  getFacing(stateId, facing) {
+  getFacing(stateId: number, facing?: Facing) {
     if (!facing) return { facing: null, faceDirection: false, is3D: false }
     const block = this.blocks[stateId]
     const data = facingData[block.name]
@@ -81,7 +100,7 @@ class Build {
     return { facing, faceDirection: data.faceDirection, is3D: data.is3D }
   }
 
-  getPossibleDirections(stateId, pos) {
+  getPossibleDirections(stateId: number, pos: Vec3) {
     const faces = [true, true, true, true, true, true]
     const properties = this.properties[stateId]
     const block = this.blocks[stateId]
@@ -107,7 +126,7 @@ class Build {
     if (properties.hanging) faces[0] = faces[2] = faces[3] = faces[4] = faces[5] = false
     if (block.material === 'plant') faces[1] = faces[2] = faces[3] = faces[4] = faces[5] = false
 
-    let dirs = []
+    let dirs: Array<Vec3> = []
     const faceDir = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1),
     new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
     for (let i = 0; i < faces.length; i++) {
@@ -118,13 +137,14 @@ class Build {
     dirs = dirs.filter(dir => {
       const block = this.world.getBlock(pos.plus(dir))
       if (!block) return false
+      //@ts-ignore
       return getShapeFaceCenters(block.shapes, dir.scaled(-1), half).length > 0
     })
 
     return dirs
   }
 
-  removeAction(action) {
+  removeAction(action: Action) {
     this.actions.splice(this.actions.indexOf(action), 1)
   }
 
@@ -137,4 +157,3 @@ class Build {
   }
 }
 
-module.exports = Build

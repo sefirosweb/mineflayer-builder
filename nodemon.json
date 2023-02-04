@@ -1,6 +1,6 @@
 {
   "execMap": {
-    "ts": "node --require ts-node/register"
+    "ts": "ts-node"
   },
   "verbose": false,
   "ignore": []
