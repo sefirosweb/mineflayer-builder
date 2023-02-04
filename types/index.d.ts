@@ -1,4 +1,4 @@
-type Vec3 = import("vec3").Vec3
+import { Vec3 } from "vec3"
 
 type Action = {
     pos: Vec3

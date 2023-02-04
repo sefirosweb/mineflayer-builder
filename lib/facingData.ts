@@ -1,4 +1,8 @@
-{
+const facingData: Record<string, {
+  is3D: boolean
+  faceDirection: boolean
+  inverted: boolean
+}> = {
   "dispenser": {
     "is3D": true,
     "faceDirection": false,
@@ -1005,3 +1009,5 @@
     "inverted": true
   }
 }
+
+export default facingData

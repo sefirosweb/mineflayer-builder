@@ -1,10 +1,10 @@
 //@ts-nocheck
 import { Vec3 } from 'vec3'
 import { Bot } from 'mineflayer'
+import interactable from './lib/interactable'
 
 const { goals, Movements } = require('mineflayer-pathfinder')
 
-const interactable = require('./lib/interactable.json')
 
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
 

@@ -2,7 +2,7 @@
 
 import { Vec3 } from 'vec3'
 //@ts-ignore
-import facingData from './facingData.json'
+import facingData from './facingData'
 import minecraftDataLoader, { Item } from 'minecraft-data'
 
 //@ts-ignore

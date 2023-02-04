@@ -1,4 +1,4 @@
-[
+const interactable: Array<string> = [
   "acacia_door",
   "acacia_fence_gate",
   "acacia_button",
@@ -133,3 +133,5 @@
   "yellow_bed",
   "yelow_shulker_box"
 ]
+
+export default interactable
