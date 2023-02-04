@@ -20,6 +20,9 @@ bot.loadPlugin(builder)
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
 
 bot.once('spawn', async () => {
+
+  bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+
   bot.on('path_update', (r) => {
     const path = [bot.entity.position.offset(0, 0.5, 0)]
     for (const node of r.path) {
@@ -35,6 +38,7 @@ bot.once('spawn', async () => {
       start()
     }
   })
+
   bot.on('chat', async (username, message) => {
     console.info(username, message)
     if (message.startsWith('build')) {
@@ -55,15 +59,15 @@ bot.once('spawn', async () => {
 
 async function build(name) {
   const schematicName = !name.endsWith('.schem') ? name + '.schem' : name
-  const filePath = path.resolve(__dirname, '../schematics/' + schematicName)
+  const filePath = path.resolve(path.join(__dirname, '..', 'schematics', schematicName))
   if (!fileExists(filePath)) {
     bot.chat(`File ${schematicName} not found`)
     return
   }
   const schematic = await Schematic.read(await fs.readFile(filePath), bot.version)
-  const at = new Vec3(415, 122, -324)
+  const at = new Vec3(0, -60, 0)
   // bot.entity.position.floored()
-  bot.chat('Building at ', at)
+  bot.chat(`Building at ${at.x} ${at.y} ${at.z}`)
   const build = new Build(schematic, bot.world, at)
   bot.chat('/fill 416 122 -324 415 122 -324 minecraft:air')
   bot.builder.build(build, noMaterial)
