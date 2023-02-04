@@ -1,9 +1,11 @@
+//@ts-nocheck
 const { Vec3 } = require('vec3')
 const facingData = require('./facingData.json')
 
 const { getShapeFaceCenters } = require('mineflayer-pathfinder/lib/shapes')
 
 class Build {
+
   constructor(schematic, world, at) {
     this.schematic = schematic
     this.world = world

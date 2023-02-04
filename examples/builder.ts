@@ -1,3 +1,4 @@
+//@ts-nocheck
 const path = require('path')
 const fs = require('fs').promises
 const { builder, Build } = require('mineflayer-builder')
@@ -22,6 +23,7 @@ function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
 bot.once('spawn', async () => {
 
   bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+  bot.chat('/time set day')
 
   bot.on('path_update', (r) => {
     const path = [bot.entity.position.offset(0, 0.5, 0)]
@@ -43,6 +45,9 @@ bot.once('spawn', async () => {
     console.info(username, message)
     if (message.startsWith('build')) {
       const [, schematicName] = message.split(' ')
+      bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+      bot.chat('/time set day')
+      await wait(1000)
       build(schematicName)
     } else if (message === 'stop') {
       bot.builder.stop()
@@ -53,7 +58,7 @@ bot.once('spawn', async () => {
     }
   })
 
-
+  await wait(1000)
   build('chest.schem')
 })
 
