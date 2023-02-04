@@ -1,15 +1,13 @@
 //@ts-nocheck
-
 import { Vec3 } from 'vec3'
-//@ts-ignore
-import facingData from './facingData'
 import minecraftDataLoader, { Item } from 'minecraft-data'
+import { Block } from 'prismarine-block'
+import facingData from './facingData'
 
 //@ts-ignore
 import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
 //@ts-ignore
 import { Schematic } from 'prismarine-schematic'
-import { Block } from 'prismarine-block'
 
 export class Build {
   schematic: Schematic

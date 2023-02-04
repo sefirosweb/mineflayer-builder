@@ -1,9 +1,12 @@
-function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
+//@ts-nocheck
+import { wait } from "./helper"
+
+
 const { goals, Movements } = require('mineflayer-pathfinder')
 const blocksCanBeReplaced = ['air', 'cave_air', 'lava', 'water', 'bubble_column', 'seagrass', 'tall_seagrass', 'kelp_plant']
 const blockForPlace = ['stone', 'cobblestone', 'dirt', 'andesite', 'diorite', 'granite', 'grass_block']
 
-module.exports = function (bot) {
+export default (bot) => {
     const mcData = require('minecraft-data')(bot.version)
     const movements = new Movements(bot, mcData)
     movements.digCost = 10
