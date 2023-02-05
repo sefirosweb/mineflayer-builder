@@ -22,8 +22,8 @@ function wait(ms: number) { return new Promise(resolve => setTimeout(resolve, ms
 
 bot.once('spawn', async () => {
 
-  bot.chat('/teleport Lordvivi')
-  bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+  // bot.chat('/teleport Lordvivi')
+  // bot.chat('/fill 25 -60 25 -25 -50 -25 air')
   bot.chat('/time set day')
 
   bot.on('path_update', (r: any) => {
@@ -41,7 +41,7 @@ bot.once('spawn', async () => {
     console.info(username, message)
     if (message.startsWith('build')) {
       const [, schematicName] = message.split(' ')
-      bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+      // bot.chat('/fill 25 -60 25 -25 -50 -25 air')
       bot.chat('/time set day')
       await wait(1000)
       build(schematicName)
@@ -55,7 +55,7 @@ bot.once('spawn', async () => {
   })
 
   await wait(1000)
-  build('test.schem')
+  build('chest.schem')
 })
 
 async function build(name: string) {
@@ -71,7 +71,7 @@ async function build(name: string) {
   // bot.entity.position.floored()
   bot.chat(`Building at ${at.x} ${at.y} ${at.z}`)
   const build = new Build(bot, schematic, bot.world, at)
-  bot.chat('/fill 416 122 -324 415 122 -324 minecraft:air')
+  // bot.chat('/fill 416 122 -324 415 122 -324 minecraft:air')
   bot.builder.build(build)
 }
 

@@ -63,17 +63,25 @@ export class Build {
     for (cursor.y = this.min.y; cursor.y < this.max.y; cursor.y++) {
       for (cursor.z = this.min.z; cursor.z < this.max.z; cursor.z++) {
         for (cursor.x = this.min.x; cursor.x < this.max.x; cursor.x++) {
-          const block = this.schematic.getBlock(cursor.minus(this.at))
+          const blockSchema = this.schematic.getBlock(cursor.minus(this.at))
+          const blockWorld = this.bot.blockAt(cursor)
+
           const stateInWorld = this.world.getBlockStateId(cursor)
           const wantedState = this.schematic.getBlockStateId(cursor.minus(this.at))
           if (stateInWorld !== wantedState) {
             if (wantedState === 0) {
               if (!this.breakNoneAir) continue
-              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block })
-            } else if (block?.name === 'chest') {
-              this.checkChestAction(block, cursor.clone(), wantedState)
+              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
             } else {
-              this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block })
+              if (blockSchema?.name !== blockWorld?.name) {
+                this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
+              }
+
+              if (blockSchema?.name === 'chest') {
+                this.checkChestAction(blockSchema, cursor.clone(), wantedState)
+              } else {
+                this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block: blockSchema })
+              }
             }
           }
         }
@@ -175,7 +183,14 @@ export class Build {
       let dB = b.pos.distanceSquared(this.bot.entity.position)
       dA += (a.pos.y - this.bot.entity.position.y) * 1000 // Priorize the layer
       dB += (b.pos.y - this.bot.entity.position.y) * 1000
-      return dA - dB
+      const distance = dA - dB
+
+      if (distance !== 0) return distance
+
+      if (a.type > b.type) return 1
+      if (a.type < b.type) return -1
+
+      return 0
     })
 
     const action = actions[0]
