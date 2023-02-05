@@ -94,6 +94,7 @@ export const builder = (bot: Bot) => {
     }
 
     bot.builder.continue = () => {
+        bot.builder.currentBuild.updateActions()
         if (!bot.builder.currentBuild) return console.log('Nothing to continue building')
         bot.builder.build(bot.builder.currentBuild)
     }
@@ -107,29 +108,25 @@ export const builder = (bot: Bot) => {
         const materialMin = options.materialMin || 0
 
         interruptBuilding = false
+        let currentLayer = undefined
 
-        while (build.actions.length > 0) {
+        do {
             if (interruptBuilding) {
                 interruptBuilding = false
                 return
             }
-            const actions = build.getAvailableActions()
-            // console.log(`${actions.length} available actions`)
-            if (actions.length === 0) {
-                console.log('No actions to perform')
-                break
+
+            const action = build.getNextAction()
+
+            if (!action) {
+                console.log('No more actions to do')
+                return
             }
-            actions.sort((a, b) => {
-                let dA = a.pos.offset(0.5, 0.5, 0.5).distanceSquared(bot.entity.position)
-                dA += (a.pos.y - bot.entity.position.y) * 1000
-                let dB = b.pos.offset(0.5, 0.5, 0.5).distanceSquared(bot.entity.position)
-                dB += (b.pos.y - bot.entity.position.y) * 1000
-                return dA - dB
-            })
-            const action = actions[0]
-            // console.log('action', action)
+
+            console.log('action', action)
 
             try {
+
                 if (action.type === 'place') {
                     const item = build.getItemForState(action.state)
                     if (bot.inventory.items().length > 30) {
@@ -140,7 +137,7 @@ export const builder = (bot: Bot) => {
 
                     if (amountItem === 0) {
                         await bot.chat('/give builder ' + item.name + ' 2')
-                        await wait(100)
+                        await wait(1000)
                     }
 
                     // console.log('Selecting ' + item.displayName)
@@ -151,7 +148,7 @@ export const builder = (bot: Bot) => {
                     const faces = build.getPossibleDirections(action.state, action.pos)
                     for (const face of faces) {
                         const block = bot.blockAt(action.pos.plus(face))
-                        // console.log(face, action.pos.plus(face), block.name)
+                        console.log(face, action.pos.plus(face), block.name)
                     }
 
                     const { facing, is3D } = build.getFacing(action.state, properties.facing)
@@ -164,10 +161,10 @@ export const builder = (bot: Bot) => {
                         LOS: placementLOS
                     })
                     if (!goal.isEnd(bot.entity.position.floored())) {
-                        console.log('pathfinding')
+                        // console.log('pathfinding')
                         bot.pathfinder.setMovements(movements)
                         await bot.pathfinder.goto(goal)
-                        console.log('finished pathing')
+                        // console.log('finished pathing')
                     }
 
                     try {
@@ -204,7 +201,9 @@ export const builder = (bot: Bot) => {
                     // const block = bot.world.getBlock(action.pos)
                     const worldState = bot.world.getBlockStateId(action.pos)
                     const blockFacingTo = bot.blockAt(action.pos)._properties?.facing
-                    console.log(blockFacingTo)
+                    if (blockFacingTo) {
+                        console.log(blockFacingTo)
+                    }
                     // Does not work for 1.12 as blocks dont have the stateId property
 
                     if (properties.facing !== blockFacingTo) {
@@ -222,10 +221,12 @@ export const builder = (bot: Bot) => {
                     }
                 } else if (action.type === 'dig') {
                     await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
+                    await digBlock(action.pos)
                     build.removeAction(action)
                 } else {
                     build.removeAction(action)
                 }
+
             } catch (e) {
                 if (e?.name === 'NoPath') {
                     console.info('Skipping unreachable action', action)
@@ -235,13 +236,18 @@ export const builder = (bot: Bot) => {
                 } else if (e?.message.startsWith('No block has been placed')) {
                     console.info('Block placement failed')
                     console.error(e)
+                    await wait(1000)
                     continue
                 } else {
                     console.log(e?.name, e)
                 }
+
+                await wait(1000)
+
                 build.removeAction(action)
             }
-        }
+
+        } while (true)
 
         if (errorNoBlocks) {
             const message = 'Failed to build no blocks left ' + errorNoBlocks

@@ -3,6 +3,7 @@ import { Vec3 } from 'vec3'
 import minecraftDataLoader, { Item } from 'minecraft-data'
 import { Block } from 'prismarine-block'
 import facingData from './facingData'
+import { Bot } from 'mineflayer'
 
 //@ts-ignore
 import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
@@ -10,6 +11,7 @@ import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
 import { Schematic } from 'prismarine-schematic'
 
 export class Build {
+  bot: Bot
   schematic: Schematic
   at: Vec3
   min: Vec3
@@ -21,8 +23,10 @@ export class Build {
   properties: Record<number, BlockProperty>
 
   world: any
+  currentLayer: number | undefined
 
-  constructor(schematic: Schematic, world: any, at: Vec3) {
+  constructor(bot: Bot, schematic: Schematic, world: any, at: Vec3) {
+    this.bot = bot
     this.schematic = schematic
     //@ts-ignore
     this.world = world
@@ -74,11 +78,6 @@ export class Build {
     }
   }
 
-  updateBlock() {
-    // is in area ?
-    this.updateActions()
-  }
-
   getItemForState(stateId: number) {
     return this.items[stateId]
   }
@@ -102,14 +101,17 @@ export class Build {
     const faces = [true, true, true, true, true, true]
     const properties = this.properties[stateId]
     const block = this.blocks[stateId]
+
     if (properties.axis) {
       if (properties.axis === 'x') faces[0] = faces[1] = faces[2] = faces[3] = false
       if (properties.axis === 'y') faces[2] = faces[3] = faces[4] = faces[5] = false
       if (properties.axis === 'z') faces[0] = faces[1] = faces[4] = faces[5] = false
     }
+
     if (properties.half === 'upper') return []
     if (properties.half === 'top' || properties.type === 'top') faces[0] = faces[1] = false
     if (properties.half === 'bottom' || properties.type === 'bottom') faces[0] = faces[1] = false
+
     if (properties.facing) {
       const { facing, faceDirection } = this.getFacing(stateId, properties.facing)
       if (faceDirection) {
@@ -121,6 +123,7 @@ export class Build {
         else if (facing === 'down') faces[0] = faces[2] = faces[3] = faces[4] = faces[5] = false
       }
     }
+
     if (properties.hanging) faces[0] = faces[2] = faces[3] = faces[4] = faces[5] = false
     if (block.material === 'plant') faces[1] = faces[2] = faces[3] = faces[4] = faces[5] = false
 
@@ -152,6 +155,31 @@ export class Build {
       if (this.getPossibleDirections(action.state, action.pos).length > 0) return true
       return false
     })
+  }
+
+  getNextAction() {
+    const actions = this.getAvailableActions()
+    if (actions.length === 0) {
+      return undefined
+    }
+
+    actions.sort((a, b) => {
+      let dA = a.pos.distanceSquared(this.bot.entity.position)
+      let dB = b.pos.distanceSquared(this.bot.entity.position)
+      dA += (a.pos.y - this.bot.entity.position.y) * 1000 // Priorize the layer
+      dB += (b.pos.y - this.bot.entity.position.y) * 1000
+      return dA - dB
+    })
+
+    const action = actions[0]
+
+    if (action.pos.y !== this.currentLayer) {
+      this.updateActions()
+      this.currentLayer = action.pos.y
+      return this.getNextAction()
+    }
+
+    return action
   }
 }
 

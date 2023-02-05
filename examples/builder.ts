@@ -69,7 +69,7 @@ async function build(name: string) {
   const at = new Vec3(0, -60, 0)
   // bot.entity.position.floored()
   bot.chat(`Building at ${at.x} ${at.y} ${at.z}`)
-  const build = new Build(schematic, bot.world, at)
+  const build = new Build(bot, schematic, bot.world, at)
   bot.chat('/fill 416 122 -324 415 122 -324 minecraft:air')
   bot.builder.build(build)
 }
