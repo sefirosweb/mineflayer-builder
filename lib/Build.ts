@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Vec3 } from 'vec3'
 import minecraftDataLoader, { Item } from 'minecraft-data'
 import { Block } from 'prismarine-block'
@@ -9,6 +10,7 @@ import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
 //@ts-ignore
 import { Schematic } from 'prismarine-schematic'
 import { Action, ActionType, BlockProperty, Facing } from '../types'
+import { getSecondBlock } from './ChestHelper'
 
 export class Build {
   bot: Bot
@@ -64,7 +66,7 @@ export class Build {
       for (cursor.z = this.min.z; cursor.z < this.max.z; cursor.z++) {
         for (cursor.x = this.min.x; cursor.x < this.max.x; cursor.x++) {
           const blockSchema = this.schematic.getBlock(cursor.minus(this.at))
-          const blockWorld = this.bot.blockAt(cursor)
+          const blockWorld = this.bot.blockAt(cursor) as Block
 
           const stateInWorld = this.world.getBlockStateId(cursor)
           const wantedState = this.schematic.getBlockStateId(cursor.minus(this.at))
@@ -77,8 +79,8 @@ export class Build {
                 this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
               }
 
-              if (blockSchema?.name === 'chest') {
-                this.checkChestAction(blockSchema, cursor.clone(), wantedState)
+              if (blockSchema?.name === 'chest') { // Check sides block are correct
+                this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState)
               } else {
                 this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block: blockSchema })
               }
@@ -89,8 +91,21 @@ export class Build {
     }
   }
 
-  checkChestAction(block: Block, pos: Vec3, state: number) {
+  checkChestAction(block: Block, blockWorld: Block, pos: Vec3, state: number) {
+
+    const { facing, type } = block.getProperties()
+    const secondblock = getSecondBlock(facing, type)
+    const secondBlockWorld = this.bot.blockAt(blockWorld.position.plus(secondblock))
+
+    if (
+      blockWorld.name === 'chest' &&
+      secondBlockWorld?.name === 'chest'
+    ) {
+      this.actions.push({ type: ActionType.dig, pos, block })
+    }
+
     this.actions.push({ type: ActionType.place, pos, state, block })
+
   }
 
   getItemForState(stateId: number) {

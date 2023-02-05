@@ -96,7 +96,7 @@ export const builder = (bot: Bot) => {
         const materialMin = options.materialMin || 0
 
         interruptBuilding = false
-        let currentLayer = undefined
+        let checkIsFinished = false
 
         do {
             if (interruptBuilding) {
@@ -107,9 +107,19 @@ export const builder = (bot: Bot) => {
             const action = build.getNextAction()
 
             if (!action) {
-                console.log('No more actions to do')
-                return
+                // Last check
+                if (checkIsFinished) {
+                    console.log('No more actions to do')
+                    return
+                }
+
+                checkIsFinished = true
+                bot.builder.currentBuild.updateActions()
+                await wait(1000)
+                continue
             }
+
+            checkIsFinished = false
 
             console.log('action', {
                 ...action,
@@ -214,6 +224,7 @@ export const builder = (bot: Bot) => {
                 } else if (action.type === ActionType.dig) {
                     await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
                     await digBlock(action.pos)
+                    await wait(500)
                     build.removeAction(action)
                 } else {
                     build.removeAction(action)

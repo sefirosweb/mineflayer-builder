@@ -20,7 +20,8 @@ export type Action = {
             type: ActionType.dig
         })
 
-type Coordinates = 'north' | 'south' | 'east' | 'west'
+export type Coordinates = 'north' | 'south' | 'east' | 'west'
+export type ChestType = 'single' | 'left' | 'right'
 
 export type Facing = 'up' | 'down' | Coordinates
 
