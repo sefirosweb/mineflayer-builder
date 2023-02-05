@@ -1,6 +1,8 @@
 import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
 
+export const blocksCanBeReplaced = ['air', 'cave_air', 'lava', 'water', 'bubble_column', 'seagrass', 'tall_seagrass', 'kelp_plant']
+
 export enum ActionType {
     dig = 0,
     place = 1,

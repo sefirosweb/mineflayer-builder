@@ -2,8 +2,8 @@ import { Bot } from "mineflayer"
 import { Vec3 } from "vec3"
 import { wait } from "./helper"
 import { goals, Movements } from 'mineflayer-pathfinder'
-const blocksCanBeReplaced = ['air', 'cave_air', 'lava', 'water', 'bubble_column', 'seagrass', 'tall_seagrass', 'kelp_plant']
-const blockForPlace = ['stone', 'cobblestone', 'dirt', 'andesite', 'diorite', 'granite', 'grass_block']
+
+export const blockForPlace = ['stone', 'cobblestone', 'dirt', 'andesite', 'diorite', 'granite', 'grass_block']
 
 export default (bot: Bot) => {
     const mcData = require('minecraft-data')(bot.version)

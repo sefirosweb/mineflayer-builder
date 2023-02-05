@@ -9,7 +9,7 @@ import { Bot } from 'mineflayer'
 import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
 //@ts-ignore
 import { Schematic } from 'prismarine-schematic'
-import { Action, ActionType, BlockProperty, Facing } from '../types'
+import { Action, ActionType, BlockProperty, blocksCanBeReplaced, Facing } from '../types'
 import { getSecondBlock } from './ChestHelper'
 
 export class Build {
@@ -75,7 +75,10 @@ export class Build {
               if (!this.breakNoneAir) continue
               this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
             } else {
-              if (blockSchema?.name !== blockWorld?.name) {
+              if (
+                blockSchema?.name !== blockWorld?.name
+                && !blocksCanBeReplaced.includes(blockWorld?.name)
+              ) {
                 this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
               }
 
