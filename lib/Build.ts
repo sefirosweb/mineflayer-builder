@@ -127,10 +127,10 @@ export class Build {
     return { facing, faceDirection: data.faceDirection, is3D: data.is3D }
   }
 
-  getPossibleDirections(stateId: number, pos: Vec3) {
+  getPossibleDirections(action: Action) {
+    const { pos, block, state } = action
     const faces = [true, true, true, true, true, true]
-    const properties = this.properties[stateId]
-    const block = this.blocks[stateId]
+    const properties = this.properties[state]
 
     if (properties.axis) {
       if (properties.axis === 'x') faces[0] = faces[1] = faces[2] = faces[3] = false
@@ -143,7 +143,7 @@ export class Build {
     if (properties.half === 'bottom' || properties.type === 'bottom') faces[0] = faces[1] = false
 
     if (properties.facing) {
-      const { facing, faceDirection } = this.getFacing(stateId, properties.facing)
+      const { facing, faceDirection } = this.getFacing(state, properties.facing)
       if (faceDirection) {
         if (facing === 'north') faces[0] = faces[1] = faces[2] = faces[4] = faces[5] = false
         else if (facing === 'south') faces[0] = faces[1] = faces[3] = faces[4] = faces[5] = false
@@ -158,13 +158,23 @@ export class Build {
     if (block.material === 'plant') faces[1] = faces[2] = faces[3] = faces[4] = faces[5] = false
 
     let dirs: Array<Vec3> = []
-    const faceDir = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1),
-    new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
+
+    const faceDir =
+      [
+        new Vec3(0, -1, 0),
+        new Vec3(0, 1, 0),
+        new Vec3(0, 0, -1),
+        new Vec3(0, 0, 1),
+        new Vec3(-1, 0, 0),
+        new Vec3(1, 0, 0)
+      ]
+
     for (let i = 0; i < faces.length; i++) {
       if (faces[i]) dirs.push(faceDir[i])
     }
 
     const half = properties.half ? properties.half : properties.type
+
     dirs = dirs.filter(dir => {
       const block = this.world.getBlock(pos.plus(dir))
       if (!block) return false
@@ -181,8 +191,8 @@ export class Build {
 
   getAvailableActions() {
     return this.actions.filter(action => {
-      if (action.type === ActionType.dig) return true // TODO: check
-      if (this.getPossibleDirections(action.state, action.pos).length > 0) return true
+      if (action.type === ActionType.dig) return true
+      if (this.getPossibleDirections(action).length > 0) return true
       return false
     })
   }

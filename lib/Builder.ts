@@ -7,6 +7,7 @@ import { goals, Movements } from 'mineflayer-pathfinder'
 import dig_block from './dig_block'
 import go_block from './go_block'
 import { ActionType } from '../types'
+import { getSecondBlock } from './ChestHelper'
 
 export const builder = (bot: Bot) => {
     if (!bot.pathfinder) {
@@ -146,10 +147,18 @@ export const builder = (bot: Bot) => {
                     const properties = build.properties[action.state]
                     const half = properties.half ? properties.half : properties.type
 
-                    const faces = build.getPossibleDirections(action.state, action.pos)
-                    for (const face of faces) {
-                        const block = bot.blockAt(action.pos.plus(face))
-                        console.log(face, action.pos.plus(face), block.name)
+                    let faces = build.getPossibleDirections(action)
+
+                    if (action.block.name === 'chest' && action.block.getProperties().type !== 'single') {
+                        const { type, facing } = action.block.getProperties()
+                        const secondBlockChestPos = getSecondBlock(facing, type)
+                        if (bot.blockAt(action.pos.plus(secondBlockChestPos))?.name === 'chest') {
+                            const foundSecondBlock = faces.find(f => f.equals(secondBlockChestPos))
+                            if (foundSecondBlock) {
+                                faces = [foundSecondBlock]
+                            }
+
+                        }
                     }
 
                     const { facing, is3D } = build.getFacing(action.state, properties.facing)
