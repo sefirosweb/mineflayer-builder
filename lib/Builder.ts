@@ -9,6 +9,8 @@ import go_block from './go_block'
 import { ActionType } from '../types'
 import { getSecondBlock } from './ChestHelper'
 
+const fast = true
+
 export const builder = (bot: Bot) => {
     if (!bot.pathfinder) {
         throw new Error('pathfinder must be loaded before builder')
@@ -26,7 +28,7 @@ export const builder = (bot: Bot) => {
     const movements = new Movements(bot, mcData)
     movements.canDig = false
     movements.maxDropDown = 10
-    movements.placeCost = 1000
+    movements.allowSprinting = false
     //@ts-ignore
     bot.pathfinder.searchRadius = 10
 
@@ -116,7 +118,7 @@ export const builder = (bot: Bot) => {
 
                 checkIsFinished = true
                 bot.builder.currentBuild.updateActions()
-                await wait(1000)
+                await wait(1000, fast)
                 continue
             }
 
@@ -133,13 +135,13 @@ export const builder = (bot: Bot) => {
                     const item = build.getItemForState(action.state)
                     if (bot.inventory.items().length > 30) {
                         bot.chat('/clear')
-                        await wait(1000)
+                        await wait(1000, fast)
                     }
                     const amountItem = bot.inventory.count(item.id)
 
                     if (amountItem === 0) {
                         await bot.chat('/give builder ' + item.name + ' 2')
-                        await wait(1000)
+                        await wait(1000, fast)
                     }
 
                     // console.log('Selecting ' + item.displayName)
@@ -170,12 +172,10 @@ export const builder = (bot: Bot) => {
                         range: placementRange,
                         LOS: placementLOS
                     })
-                    if (!goal.isEnd(bot.entity.position.floored())) {
-                        // console.log('pathfinding')
-                        bot.pathfinder.setMovements(movements)
-                        await bot.pathfinder.goto(goal)
-                        // console.log('finished pathing')
-                    }
+
+                    bot.pathfinder.tickTimeout = 200
+                    bot.pathfinder.setMovements(movements)
+                    await bot.pathfinder.goto(goal)
 
                     try {
                         const amount = bot.inventory.count(item.id)
@@ -194,23 +194,22 @@ export const builder = (bot: Bot) => {
                         throw e
                     }
 
-                    // TODO: const faceAndRef = goal.getFaceAndRef(bot.entity.position.offset(0, 1.6, 0))
                     const faceAndRef = goal.getFaceAndRef(bot.entity.position.floored().offset(0.5, 1.6, 0.5))
-                    if (!faceAndRef) { throw new Error('no face and ref') }
+                    if (!faceAndRef) {
+                        throw new Error('no face and ref')
+                    }
 
-                    // console.log(faceAndRef)
-                    bot.lookAt(faceAndRef.to, true)
+                    await bot.lookAt(faceAndRef.to, fast)
 
                     const refBlock = bot.blockAt(faceAndRef.ref)
                     const sneak = interactable.indexOf(refBlock.name) > 0
                     const delta = faceAndRef.to.minus(faceAndRef.ref)
+
                     if (sneak) bot.setControlState('sneak', true)
                     await bot._placeBlockWithOptions(refBlock, faceAndRef.face.scaled(-1), { half, delta })
                     if (sneak) bot.setControlState('sneak', false)
-                    await wait(200)
+                    await wait(200, fast)
 
-                    // const block = bot.world.getBlock(action.pos)
-                    const worldState = bot.world.getBlockStateId(action.pos)
                     const blockFacingTo = bot.blockAt(action.pos)._properties?.facing
                     if (blockFacingTo) {
                         console.log(blockFacingTo)
@@ -221,13 +220,17 @@ export const builder = (bot: Bot) => {
                         console.log('Wrong facing block', properties)
                         console.log('got', blockFacingTo)
 
-                        await wait(500)
-                        await (action.pos)
+                        if (!fast) {
+                            await wait(500, fast)
+                        }
+                        await digBlock(action.pos)
 
                         const faceDirOffset = faceDir[properties.facing]
                         const newPosition = action.pos.offset(faceDirOffset.x, faceDirOffset.y, faceDirOffset.z)
 
-                        await wait(500)
+                        if (!fast) {
+                            await wait(500, fast)
+                        }
                         await goBlock(newPosition)
                     } else {
                         build.removeAction(action)
@@ -235,13 +238,13 @@ export const builder = (bot: Bot) => {
                 } else if (action.type === ActionType.dig) {
                     await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
                     await digBlock(action.pos)
-                    await wait(500)
+                    await wait(500, fast)
                     build.removeAction(action)
                 } else if (action.type === ActionType.click) {
                     await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
                     const block = bot.blockAt(action.pos)
                     await bot.activateBlock(block)
-                    await wait(500)
+                    await wait(500, fast)
                     build.removeAction(action)
                 }
 
@@ -257,13 +260,13 @@ export const builder = (bot: Bot) => {
                     console.log(bot.entity.position)
                     console.log(action.pos)
                     console.error(e.message)
-                    await wait(1000)
+                    await wait(1000, fast)
                     continue
                 } else {
                     console.log(e?.name, e)
                 }
 
-                await wait(1000)
+                await wait(1000, fast)
 
                 build.removeAction(action)
             }

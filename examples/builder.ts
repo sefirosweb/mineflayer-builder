@@ -24,7 +24,7 @@ bot.once('spawn', async () => {
 
   bot.chat('/gamemode creative')
   // bot.chat('/teleport Lordvivi')
-  // bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+  bot.chat('/fill 25 -60 25 -25 -50 -25 air')
   bot.chat('/time set day')
 
   bot.on('path_update', (r: any) => {

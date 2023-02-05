@@ -17,16 +17,16 @@ export default (bot: Bot) => {
         const downBlock = bot.blockAt(position.offset(0, -1, 0))
         if (downBlock === null) throw new Error('down block not found!')
 
-        await placeHelperblocks()
+        placeHelperblocks()
 
         const newPosition = position.offset(0.5, 0, 0.5)
         console.log(newPosition)
         const goal = new goals.GoalBlock(newPosition.x, newPosition.y, newPosition.z)
         await bot.pathfinder.goto(goal)
-        await wait(100)
+        await wait(100, true)
     }
 
-    async function placeHelperblocks() {
+    function placeHelperblocks() {
         const itemToPlace = bot.inventory.items().find(item => blockForPlace.includes(item.name))
         if (!itemToPlace) {
             throw new Error('No items helper to place')
