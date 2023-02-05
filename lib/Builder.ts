@@ -24,9 +24,9 @@ export const builder = (bot: Bot) => {
 
 
     const movements = new Movements(bot, mcData)
-    // movements.canDig = false
-    movements.digCost = 10
-    movements.maxDropDown = 3
+    movements.canDig = false
+    movements.maxDropDown = 10
+    movements.placeCost = 1000
     //@ts-ignore
     bot.pathfinder.searchRadius = 10
 
@@ -220,8 +220,9 @@ export const builder = (bot: Bot) => {
                     if (properties.facing !== blockFacingTo) {
                         console.log('Wrong facing block', properties)
                         console.log('got', blockFacingTo)
+
                         await wait(500)
-                        await digBlock(action.pos)
+                        await (action.pos)
 
                         const faceDirOffset = faceDir[properties.facing]
                         const newPosition = action.pos.offset(faceDirOffset.x, faceDirOffset.y, faceDirOffset.z)
@@ -236,7 +237,11 @@ export const builder = (bot: Bot) => {
                     await digBlock(action.pos)
                     await wait(500)
                     build.removeAction(action)
-                } else {
+                } else if (action.type === ActionType.click) {
+                    await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
+                    const block = bot.blockAt(action.pos)
+                    await bot.activateBlock(block)
+                    await wait(500)
                     build.removeAction(action)
                 }
 

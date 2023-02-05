@@ -65,6 +65,10 @@ export class Build {
       return mcData.itemsByName['redstone_torch']
     }
 
+    if (name === 'redstone_wire') {
+      return mcData.itemsByName['redstone']
+    }
+
     // if (name.includes('repeater')) {
     //   const a = 1;
     // }
@@ -84,27 +88,67 @@ export class Build {
           const stateInWorld = this.world.getBlockStateId(cursor)
           const wantedState = this.schematic.getBlockStateId(cursor.minus(this.at))
           if (stateInWorld !== wantedState) {
+
             if (wantedState === 0) {
               if (!this.breakNoneAir) continue
               this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
-            } else {
-              if (
-                blockSchema?.name !== blockWorld?.name
-                && !blocksCanBeReplaced.includes(blockWorld?.name)
-              ) {
-                this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
-              }
-
-              if (blockSchema?.name === 'chest') { // Check sides block are correct
-                this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState)
-              } else {
-                this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block: blockSchema })
-              }
+              continue
             }
+
+            if (
+              blockSchema?.name !== blockWorld?.name
+              && !blocksCanBeReplaced.includes(blockWorld?.name)
+            ) {
+              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
+            }
+
+            if (blockSchema?.name === 'chest') { // Check sides block are correct
+              this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState, stateInWorld)
+              continue
+            }
+
+
+            if (['redstone_wire', 'repeater', 'comparator', 'daylight_detector'].includes(blockSchema.name)) {
+              this.checkRedstoneActions(blockSchema, blockWorld, cursor.clone(), wantedState)
+              continue
+            }
+
+            this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block: blockSchema })
+
+
           }
         }
       }
     }
+  }
+
+  checkRedstoneActions(block: Block, blockWorld: Block, pos: Vec3, state: number,) {
+
+    if (block?.name !== blockWorld?.name) {
+      this.actions.push({ type: ActionType.place, pos, state, block })
+    }
+
+    if (block.name === 'comparator' &&
+      (
+        (block?.name !== blockWorld?.name)
+        ||
+        (block?.name === blockWorld?.name &&
+          block.getProperties().mode != blockWorld.getProperties().mode)
+      )) {
+      this.actions.push({ type: ActionType.click, pos, state, block })
+    }
+
+    if (block.name === 'comparator' &&
+      (
+        (block?.name !== blockWorld?.name)
+        ||
+        (block?.name === blockWorld?.name &&
+          block.getProperties().inverted != blockWorld.getProperties().inverted)
+      )) {
+      this.actions.push({ type: ActionType.click, pos, state, block })
+    }
+
+    const a = 1
   }
 
   checkChestAction(block: Block, blockWorld: Block, pos: Vec3, state: number) {
