@@ -234,6 +234,7 @@ export const builder = (bot: Bot) => {
                     console.info('Canceling build no materials')
                     break
                 } else if (e?.message.startsWith('No block has been placed')) {
+                    bot.builder.currentBuild.updateActions()
                     console.info('Block placement failed')
                     console.error(e)
                     await wait(1000)
