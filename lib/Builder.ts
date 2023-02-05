@@ -111,7 +111,10 @@ export const builder = (bot: Bot) => {
                 return
             }
 
-            console.log('action', action)
+            console.log('action', {
+                ...action,
+                block: action.block.name
+            })
 
             try {
 
@@ -197,6 +200,7 @@ export const builder = (bot: Bot) => {
                     if (properties.facing !== blockFacingTo) {
                         console.log('Wrong facing block', properties)
                         console.log('got', blockFacingTo)
+                        await wait(500)
                         await digBlock(action.pos)
 
                         const faceDirOffset = faceDir[properties.facing]
