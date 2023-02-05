@@ -1,22 +1,30 @@
+import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
 
-type Action = {
-    pos: Vec3
+export enum ActionType {
+    dig = 0,
+    place = 1,
+    click = 2,
+}
+
+export type Action = {
+    pos: Vec3,
+    block: Block
 } & (
         {
             state: number
-            type: 'place'
+            type: ActionType.place
         } |
         {
             state?: never
-            type: 'dig'
+            type: ActionType.dig
         })
 
 type Coordinates = 'north' | 'south' | 'east' | 'west'
 
-type Facing = 'up' | 'down' | Coordinates
+export type Facing = 'up' | 'down' | Coordinates
 
-type BlockProperty = {
+export type BlockProperty = {
     level?: number
     facing?: Coordinates
     occupied?: boolean

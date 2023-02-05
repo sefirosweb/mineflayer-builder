@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { Vec3 } from 'vec3'
 import minecraftDataLoader, { Item } from 'minecraft-data'
 import { Block } from 'prismarine-block'
@@ -9,6 +8,7 @@ import { Bot } from 'mineflayer'
 import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
 //@ts-ignore
 import { Schematic } from 'prismarine-schematic'
+import { Action, ActionType, BlockProperty, Facing } from '../types'
 
 export class Build {
   bot: Bot
@@ -63,19 +63,26 @@ export class Build {
     for (cursor.y = this.min.y; cursor.y < this.max.y; cursor.y++) {
       for (cursor.z = this.min.z; cursor.z < this.max.z; cursor.z++) {
         for (cursor.x = this.min.x; cursor.x < this.max.x; cursor.x++) {
+          const block = this.schematic.getBlock(cursor.minus(this.at))
           const stateInWorld = this.world.getBlockStateId(cursor)
           const wantedState = this.schematic.getBlockStateId(cursor.minus(this.at))
           if (stateInWorld !== wantedState) {
             if (wantedState === 0) {
               if (!this.breakNoneAir) continue
-              this.actions.push({ type: 'dig', pos: cursor.clone() })
+              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block })
+            } else if (block?.name === 'chest') {
+              this.checkChestAction(block, cursor.clone(), wantedState)
             } else {
-              this.actions.push({ type: 'place', pos: cursor.clone(), state: wantedState })
+              this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block })
             }
           }
         }
       }
     }
+  }
+
+  checkChestAction(block: Block, pos: Vec3, state: number) {
+    this.actions.push({ type: ActionType.place, pos, state, block })
   }
 
   getItemForState(stateId: number) {
@@ -151,13 +158,13 @@ export class Build {
 
   getAvailableActions() {
     return this.actions.filter(action => {
-      if (action.type === 'dig') return true // TODO: check
+      if (action.type === ActionType.dig) return true // TODO: check
       if (this.getPossibleDirections(action.state, action.pos).length > 0) return true
       return false
     })
   }
 
-  getNextAction() {
+  getNextAction(): Action | undefined {
     const actions = this.getAvailableActions()
     if (actions.length === 0) {
       return undefined

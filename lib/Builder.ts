@@ -1,5 +1,4 @@
 //@ts-nocheck
-
 import { Bot } from 'mineflayer'
 import interactable from './interactable'
 import { wait, faceDir } from './helper'
@@ -7,6 +6,7 @@ import { goals, Movements } from 'mineflayer-pathfinder'
 
 import dig_block from './dig_block'
 import go_block from './go_block'
+import { ActionType } from '../types'
 
 export const builder = (bot: Bot) => {
     if (!bot.pathfinder) {
@@ -16,7 +16,7 @@ export const builder = (bot: Bot) => {
     let interruptBuilding = false
 
     const mcData = require('minecraft-data')(bot.version)
-    const Item = require('prismarine-item')(bot.versio)
+    const Item = require('prismarine-item')(bot.version)
 
     const { digBlock } = dig_block(bot)
     const { goBlock } = go_block(bot)
@@ -26,28 +26,16 @@ export const builder = (bot: Bot) => {
     // movements.canDig = false
     movements.digCost = 10
     movements.maxDropDown = 3
+    //@ts-ignore
     bot.pathfinder.searchRadius = 10
 
+    //@ts-ignore
     bot.builder = {}
 
+    //@ts-ignore
     bot.builder.currentBuild = null
 
-    async function equipCreative(id) {
-        if (bot.inventory.items().length > 30) {
-            bot.chat('/clear')
-            await wait(1000)
-            const slot = bot.inventory.firstEmptyInventorySlot()
-            await bot.creative.setInventorySlot(slot !== null ? slot : 36, new Item(mcData.itemsByName.dirt.id, 1))
-        }
-        if (!bot.inventory.items().find(x => x.type === id)) {
-            const slot = bot.inventory.firstEmptyInventorySlot()
-            await bot.creative.setInventorySlot(slot !== null ? slot : 36, new Item(id, 1))
-        }
-        const item = bot.inventory.items().find(x => x.type === id)
-        await bot.equip(item, 'hand')
-    }
-
-    async function equipItem(id) {
+    async function equipItem(id: number) {
         if (bot.heldItem?.type === id) return
         const item = bot.inventory.findInventoryItem(id, null)
         if (!item) {
@@ -127,7 +115,7 @@ export const builder = (bot: Bot) => {
 
             try {
 
-                if (action.type === 'place') {
+                if (action.type === ActionType.place) {
                     const item = build.getItemForState(action.state)
                     if (bot.inventory.items().length > 30) {
                         bot.chat('/clear')
@@ -219,7 +207,7 @@ export const builder = (bot: Bot) => {
                     } else {
                         build.removeAction(action)
                     }
-                } else if (action.type === 'dig') {
+                } else if (action.type === ActionType.dig) {
                     await bot.pathfinder.goto(new goals.Goal(action.pos.x, action.pos.y, action.pos))
                     await digBlock(action.pos)
                     build.removeAction(action)
@@ -236,7 +224,9 @@ export const builder = (bot: Bot) => {
                 } else if (e?.message.startsWith('No block has been placed')) {
                     bot.builder.currentBuild.updateActions()
                     console.info('Block placement failed')
-                    console.error(e)
+                    console.log(bot.entity.position)
+                    console.log(action.pos)
+                    console.error(e.message)
                     await wait(1000)
                     continue
                 } else {

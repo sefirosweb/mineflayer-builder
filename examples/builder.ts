@@ -22,7 +22,7 @@ function wait(ms: number) { return new Promise(resolve => setTimeout(resolve, ms
 
 bot.once('spawn', async () => {
 
-  bot.chat('/gamemode survival')
+  bot.chat('/teleport Lordvivi')
   bot.chat('/fill 25 -60 25 -25 -50 -25 air')
   bot.chat('/time set day')
 
@@ -55,7 +55,7 @@ bot.once('spawn', async () => {
   })
 
   await wait(1000)
-  build('chest.schem')
+  build('test.schem')
 })
 
 async function build(name: string) {
