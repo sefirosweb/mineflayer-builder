@@ -52,11 +52,24 @@ export class Build {
       const block = Block.fromStateId(stateId, 0)
       this.blocks[stateId] = block
       this.properties[stateId] = block.getProperties()
-      this.items[stateId] = mcData.itemsByName[block.name]
+      this.items[stateId] = this.findItem(mcData, block.name)
     }
 
     // How many actions ?
     // console.log(this.actions)
+  }
+
+  findItem(mcData, name: string) {
+
+    if (name === 'redstone_wall_torch') {
+      return mcData.itemsByName['redstone_torch']
+    }
+
+    // if (name.includes('repeater')) {
+    //   const a = 1;
+    // }
+
+    return mcData.itemsByName[name]
   }
 
   updateActions() {

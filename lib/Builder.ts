@@ -207,6 +207,7 @@ export const builder = (bot: Bot) => {
                     if (sneak) bot.setControlState('sneak', true)
                     await bot._placeBlockWithOptions(refBlock, faceAndRef.face.scaled(-1), { half, delta })
                     if (sneak) bot.setControlState('sneak', false)
+                    await wait(200)
 
                     // const block = bot.world.getBlock(action.pos)
                     const worldState = bot.world.getBlockStateId(action.pos)
