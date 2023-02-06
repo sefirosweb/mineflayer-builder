@@ -15,7 +15,7 @@ export type Action = {
 } & (
         {
             state: number
-            type: ActionType.place
+            type: ActionType.place | ActionType.click
         } |
         {
             state?: never

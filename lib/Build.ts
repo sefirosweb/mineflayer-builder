@@ -4,13 +4,14 @@ import minecraftDataLoader, { Item } from 'minecraft-data'
 import { Block } from 'prismarine-block'
 import facingData from './facingData'
 import { Bot } from 'mineflayer'
-
-//@ts-ignore
-import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
-//@ts-ignore
-import { Schematic } from 'prismarine-schematic'
 import { Action, ActionType, BlockProperty, blocksCanBeReplaced, Facing } from '../types'
 import { getSecondBlock } from './ChestHelper'
+import blocksWithVariablePropierties from './blocksWithVariablePropierties'
+
+//@ts-ignore
+import { Schematic } from 'prismarine-schematic'
+//@ts-ignore
+import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
 
 export class Build {
   bot: Bot
@@ -103,13 +104,13 @@ export class Build {
             }
 
             if (blockSchema?.name === 'chest') { // Check sides block are correct
-              this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState, stateInWorld)
+              this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState)
               continue
             }
 
 
-            if (['redstone_wire', 'repeater', 'comparator', 'daylight_detector'].includes(blockSchema.name)) {
-              this.checkRedstoneActions(blockSchema, blockWorld, cursor.clone(), wantedState)
+            if (Object.keys(blocksWithVariablePropierties).includes(blockSchema.name)) {
+              this.checkIntaractableBlocks(blockSchema, blockWorld, cursor.clone(), wantedState)
               continue
             }
 
@@ -122,33 +123,25 @@ export class Build {
     }
   }
 
-  checkRedstoneActions(block: Block, blockWorld: Block, pos: Vec3, state: number,) {
+  checkIntaractableBlocks(block: Block, blockWorld: Block, pos: Vec3, state: number,) {
+
+    const { prop, defaultValue } = blocksWithVariablePropierties[block.name]
 
     if (block?.name !== blockWorld?.name) {
       this.actions.push({ type: ActionType.place, pos, state, block })
     }
 
-    if (block.name === 'comparator' &&
-      (
-        (block?.name !== blockWorld?.name)
-        ||
-        (block?.name === blockWorld?.name &&
-          block.getProperties().mode != blockWorld.getProperties().mode)
-      )) {
+    const expectedProp = block.getProperties()[prop]
+
+    if (block?.name !== blockWorld?.name && expectedProp !== defaultValue) {
       this.actions.push({ type: ActionType.click, pos, state, block })
+      return
     }
 
-    if (block.name === 'comparator' &&
-      (
-        (block?.name !== blockWorld?.name)
-        ||
-        (block?.name === blockWorld?.name &&
-          block.getProperties().inverted != blockWorld.getProperties().inverted)
-      )) {
+    if (block?.name === blockWorld?.name && expectedProp !== blockWorld.getProperties()[prop]) {
       this.actions.push({ type: ActionType.click, pos, state, block })
+      return
     }
-
-    const a = 1
   }
 
   checkChestAction(block: Block, blockWorld: Block, pos: Vec3, state: number) {
