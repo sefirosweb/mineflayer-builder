@@ -56,8 +56,7 @@ export const builder = (bot: Bot) => {
         bot.builder.build(bot.builder.currentBuild)
     }
 
-    bot.builder.build = async (build, noMaterialCallback) => {
-        let errorNoBlocks
+    bot.builder.build = async (build) => {
         bot.builder.currentBuild = build
 
 
@@ -140,16 +139,6 @@ export const builder = (bot: Bot) => {
 
         } while (true)
 
-        if (errorNoBlocks) {
-            const message = 'Failed to build no blocks left ' + errorNoBlocks
-            bot.chat(message)
-            bot.emit('builder_cancel', message)
-        } else {
-            bot.chat('Finished building')
-            setTimeout(() => {
-                bot.emit('builder_finished')
-            }, 0)
-        }
         bot.builder.currentBuild = null
     }
 }

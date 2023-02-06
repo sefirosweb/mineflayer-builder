@@ -12,28 +12,6 @@ const placementRange = 3
 const placementLOS = true
 const materialMin = 0
 
-async function materialCallback(item, noMaterialCallback) {
-    if (noMaterialCallback && typeof noMaterialCallback === 'function') {
-        const p = new Promise((resolve, reject) => {
-            try {
-                noMaterialCallback(item, (data) => {
-                    resolve(data)
-                }, (error) => {
-                    reject(error)
-                })
-            } catch (e) {
-                reject(e)
-            }
-        })
-        try {
-            await p
-        } catch (e) {
-            throw new Error(item.name)
-        }
-    }
-    throw new Error(item.name)
-}
-
 export const actionPlace = async (bot: Bot, build: any, action: Action, fast: boolean) => {
     const mcData = mcDataLoader(bot.version)
     const movements = new Movements(bot, mcData)
@@ -86,22 +64,9 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, fast: bo
     bot.pathfinder.setMovements(movements)
     await bot.pathfinder.goto(goal)
 
-    try {
-        const amount = bot.inventory.count(item.id)
-        if (amount <= materialMin) throw Error('no_blocks')
-        await equipItem(bot, item.id) // equip item after pathfinder
-    } catch (e) {
-        if (e.message === 'no_blocks') {
-            try {
-                await materialCallback(item, noMaterialCallback)
-            } catch (e) {
-                console.info('Throwing error no material')
-                throw Error('cancel')
-            }
-            return
-        }
-        throw e
-    }
+    const amount = bot.inventory.count(item.id)
+    if (amount <= materialMin) throw Error('no_blocks')
+    await equipItem(bot, item.id) // equip item after pathfinder
 
     const faceAndRef = goal.getFaceAndRef(bot.entity.position.floored().offset(0.5, 1.6, 0.5))
     if (!faceAndRef) {
