@@ -3,12 +3,10 @@ import { Bot } from 'mineflayer'
 import { wait, equipItem } from './helper'
 import { goals } from 'mineflayer-pathfinder'
 
-import dig_block from './dig_block'
+import digBlockLoader from './digBlock'
 import { ActionType } from '../types'
 import { actionPlace } from './ActionPlace'
 import { goActionBlock } from './goActionBlock'
-
-const fast = false
 
 export const builder = (bot: Bot) => {
     if (!bot.pathfinder) {
@@ -16,7 +14,7 @@ export const builder = (bot: Bot) => {
     }
 
     let interruptBuilding = false
-    const { digBlock } = dig_block(bot)
+    const digBlock = digBlockLoader(bot)
 
     //@ts-ignore
 
@@ -71,7 +69,7 @@ export const builder = (bot: Bot) => {
 
                 checkIsFinished = true
                 bot.builder.currentBuild.updateActions()
-                await wait(1000, fast)
+                await wait(1000)
                 continue
             }
 
@@ -84,12 +82,12 @@ export const builder = (bot: Bot) => {
 
             try {
                 if (action.type === ActionType.place) {
-                    await actionPlace(bot, build, action, fast)
+                    await actionPlace(bot, build, action)
                     build.removeAction(action)
                 } else if (action.type === ActionType.dig) {
                     await goActionBlock(bot, build, action)
                     await digBlock(action.pos)
-                    await wait(500, fast)
+                    await wait(500)
                     build.removeAction(action)
                 } else if (action.type === ActionType.click) {
 
@@ -97,7 +95,7 @@ export const builder = (bot: Bot) => {
                     await bot.lookAt(action.pos)
                     const block = bot.blockAt(action.pos)
                     await bot.activateBlock(block)
-                    await wait(500, fast)
+                    await wait(500)
                     build.removeAction(action)
                 }
 
@@ -116,16 +114,16 @@ export const builder = (bot: Bot) => {
                     console.log(bot.entity.position)
                     console.log(action.pos)
                     console.error(e.message)
-                    await wait(1000, fast)
+                    await wait(1000)
                     continue
                 } else if (e?.message.startsWith('no face and ref')) {
                     build.removeAction(action)
-                    await wait(1000, fast)
+                    await wait(1000)
                 } else {
                     console.log(e?.name)
                 }
 
-                await wait(1000, fast)
+                await wait(1000)
 
                 // build.removeAction(action)
             }

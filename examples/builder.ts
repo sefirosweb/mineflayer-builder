@@ -56,7 +56,7 @@ bot.once('spawn', async () => {
   })
 
   await wait(1000)
-  build('smallhouse1.schem')
+  build('test.schem')
 })
 
 async function build(name: string) {

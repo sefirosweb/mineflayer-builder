@@ -8,7 +8,5 @@ export default (bot: Bot) => {
         await bot.dig(block)
     }
 
-    return {
-        digBlock,
-    }
+    return digBlock
 }

@@ -1,18 +1,20 @@
 //@ts-nocheck
 import { Bot } from "mineflayer"
 import { goals, Movements } from "mineflayer-pathfinder"
-import { Action } from "../types"
+import { Action, blocksCanBeReplaced } from "../types"
 import { getSecondBlock } from "./ChestHelper"
 import { equipItem, wait } from "./helper"
 import mcDataLoader from 'minecraft-data'
 import interactable from "./interactable"
+import digBlockLoader from "./digBlock"
 
 
 const placementRange = 3
 const placementLOS = true
 const materialMin = 0
 
-export const actionPlace = async (bot: Bot, build: any, action: Action, executeFastCommands: boolean) => {
+export const actionPlace = async (bot: Bot, build: any, action: Action) => {
+    const digBlock = digBlockLoader(bot)
     const mcData = mcDataLoader(bot.version)
     const movements = new Movements(bot, mcData)
     movements.canDig = false
@@ -60,7 +62,7 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, executeF
         LOS: placementLOS
     })
 
-    const fast = facing === null || executeFastCommands
+    const fast = facing === null
 
     bot.pathfinder.setMovements(movements)
     await bot.pathfinder.goto(goal)
@@ -74,22 +76,32 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, executeF
         throw new Error('no face and ref')
     }
 
-    await bot.lookAt(faceAndRef.to, fast)
+    await bot.lookAt(action.pos, fast)
+
+    const currentBlockPos = bot.blockAt(action.pos)?.name
+    if (currentBlockPos && !blocksCanBeReplaced.includes(currentBlockPos)) {
+        await digBlock(action.pos)
+        await wait(200)
+    }
 
     const refBlock = bot.blockAt(faceAndRef.ref)
     const sneak = interactable.indexOf(refBlock.name) > 0
     const delta = faceAndRef.to.minus(faceAndRef.ref)
 
-    if (sneak) bot.setControlState('sneak', true)
+    if (sneak) {
+        bot.setControlState('sneak', true)
+        await wait(200)
+    }
+
     await bot._placeBlockWithOptions(refBlock, faceAndRef.face.scaled(-1), { half, delta })
-    if (sneak) bot.setControlState('sneak', false)
-    await wait(200, fast)
+
+    if (sneak) {
+        await wait(150, fast)
+        bot.setControlState('sneak', false)
+        await wait(150, fast)
+    }
 
     const blockFacingTo = bot.blockAt(action.pos)._properties?.facing
-    if (blockFacingTo) {
-        console.log(blockFacingTo)
-    }
-    // Does not work for 1.12 as blocks dont have the stateId property
 
     if (properties.facing !== blockFacingTo) {
         console.log('Wrong facing block', properties)
@@ -99,12 +111,10 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, executeF
         await digBlock(action.pos)
         await wait(200)
 
-        const faceDirOffset = faceDir[properties.facing]
-        const newPosition = action.pos.offset(faceDirOffset.x, faceDirOffset.y, faceDirOffset.z)
-        const newGoal = new goals.GoalBlock(newPosition.x, newPosition.y, newPosition.z)
-        await bot.pathfinder.goto(newGoal)
+        await bot.pathfinder.goto(goal)
 
-        await wait(500)
+
+        await actionPlace(bot, build, action)
 
     }
 }
