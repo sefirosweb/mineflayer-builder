@@ -7,6 +7,7 @@ const blocksWithVariablePropierties: Record<string, {
   "dark_oak_trapdoor": { prop: 'open', defaultValue: false },
   "jungle_trapdoor": { prop: 'open', defaultValue: false },
   "oak_trapdoor": { prop: 'open', defaultValue: false },
+  "oak_door": { prop: 'open', defaultValue: false },
   "comparator": { prop: 'mode', defaultValue: 'substract' }
 }
 

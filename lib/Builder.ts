@@ -1,14 +1,12 @@
 //@ts-nocheck
 import { Bot } from 'mineflayer'
-import interactable from './interactable'
-import { wait, faceDir, equipItem } from './helper'
-import { goals, Movements } from 'mineflayer-pathfinder'
+import { wait, equipItem } from './helper'
+import { goals } from 'mineflayer-pathfinder'
 
 import dig_block from './dig_block'
-import go_block, { blockForPlace } from './go_block'
 import { ActionType } from '../types'
-import { getSecondBlock } from './ChestHelper'
 import { actionPlace } from './ActionPlace'
+import { goActionBlock } from './goActionBlock'
 
 const fast = false
 
@@ -18,14 +16,7 @@ export const builder = (bot: Bot) => {
     }
 
     let interruptBuilding = false
-
-    const mcData = require('minecraft-data')(bot.version)
-    const Item = require('prismarine-item')(bot.version)
-
     const { digBlock } = dig_block(bot)
-    const { goBlock } = go_block(bot)
-
-
 
     //@ts-ignore
 
@@ -96,12 +87,14 @@ export const builder = (bot: Bot) => {
                     await actionPlace(bot, build, action, fast)
                     build.removeAction(action)
                 } else if (action.type === ActionType.dig) {
-                    await bot.pathfinder.goto(new goals.GoalBlock(action.pos.x, action.pos.y, action.pos))
+                    await goActionBlock(bot, build, action)
                     await digBlock(action.pos)
                     await wait(500, fast)
                     build.removeAction(action)
                 } else if (action.type === ActionType.click) {
-                    await bot.pathfinder.goto(new goals.GoalBlock(action.pos.x, action.pos.y, action.pos))
+
+                    await goActionBlock(bot, build, action)
+                    await bot.lookAt(action.pos)
                     const block = bot.blockAt(action.pos)
                     await bot.activateBlock(block)
                     await wait(500, fast)

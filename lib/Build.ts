@@ -12,6 +12,7 @@ import blocksWithVariablePropierties from './blocksWithVariablePropierties'
 import { Schematic } from 'prismarine-schematic'
 //@ts-ignore
 import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
+import ignoreStateBlocks from './ignoreStateBlocks'
 
 export class Build {
   bot: Bot
@@ -96,6 +97,11 @@ export class Build {
               continue
             }
 
+            if (blockSchema?.name === blockWorld?.name && ignoreStateBlocks.includes(blockWorld?.name)
+            ) {
+              continue
+            }
+
             if (
               blockSchema?.name !== blockWorld?.name
               && !blocksCanBeReplaced.includes(blockWorld?.name)
@@ -110,7 +116,7 @@ export class Build {
 
 
             if (Object.keys(blocksWithVariablePropierties).includes(blockSchema.name)) {
-              this.checkIntaractableBlocks(blockSchema, blockWorld, cursor.clone(), wantedState)
+              this.checkIntaractableBlocks(blockSchema, blockWorld, cursor.clone(), wantedState, stateInWorld)
               continue
             }
 
@@ -123,7 +129,7 @@ export class Build {
     }
   }
 
-  checkIntaractableBlocks(block: Block, blockWorld: Block, pos: Vec3, state: number,) {
+  checkIntaractableBlocks(block: Block, blockWorld: Block, pos: Vec3, state: number, stateInWorld: number) {
 
     const { prop, defaultValue } = blocksWithVariablePropierties[block.name]
 

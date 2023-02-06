@@ -12,7 +12,7 @@ const placementRange = 3
 const placementLOS = true
 const materialMin = 0
 
-export const actionPlace = async (bot: Bot, build: any, action: Action, fast: boolean) => {
+export const actionPlace = async (bot: Bot, build: any, action: Action, executeFastCommands: boolean) => {
     const mcData = mcDataLoader(bot.version)
     const movements = new Movements(bot, mcData)
     movements.canDig = false
@@ -23,13 +23,12 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, fast: bo
     const item = build.getItemForState(action.state)
     if (bot.inventory.items().length > 30) {
         bot.chat('/clear')
-        await wait(1000, fast)
+        await wait(1000)
     }
     const amountItem = bot.inventory.count(item.id)
 
     if (amountItem === 0) {
         await bot.chat('/give builder ' + item.name + ' 2')
-        await wait(1000, fast)
     }
 
     // console.log('Selecting ' + item.displayName)
@@ -60,6 +59,8 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, fast: bo
         range: placementRange,
         LOS: placementLOS
     })
+
+    const fast = facing === null || executeFastCommands
 
     bot.pathfinder.setMovements(movements)
     await bot.pathfinder.goto(goal)
