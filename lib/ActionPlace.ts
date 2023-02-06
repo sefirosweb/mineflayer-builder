@@ -28,7 +28,7 @@ export const actionPlace = async (bot: Bot, build: any, action: Action, executeF
     const amountItem = bot.inventory.count(item.id)
 
     if (amountItem === 0) {
-        await bot.chat('/give builder ' + item.name + ' 2')
+        bot.chat('/give builder ' + item.name + ' 2')
     }
 
     // console.log('Selecting ' + item.displayName)

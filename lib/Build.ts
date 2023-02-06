@@ -71,10 +71,6 @@ export class Build {
       return mcData.itemsByName['redstone']
     }
 
-    // if (name.includes('repeater')) {
-    //   const a = 1;
-    // }
-
     return mcData.itemsByName[name]
   }
 
@@ -93,7 +89,7 @@ export class Build {
 
             if (wantedState === 0) {
               if (!this.breakNoneAir) continue
-              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
+              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), state: wantedState, block: blockSchema })
               continue
             }
 
@@ -106,7 +102,7 @@ export class Build {
               blockSchema?.name !== blockWorld?.name
               && !blocksCanBeReplaced.includes(blockWorld?.name)
             ) {
-              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), block: blockSchema })
+              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), state: wantedState, block: blockSchema })
             }
 
             if (blockSchema?.name === 'chest') { // Check sides block are correct
@@ -160,7 +156,7 @@ export class Build {
       blockWorld.name === 'chest' &&
       secondBlockWorld?.name === 'chest'
     ) {
-      this.actions.push({ type: ActionType.dig, pos, block })
+      this.actions.push({ type: ActionType.dig, pos, state, block })
     }
 
     this.actions.push({ type: ActionType.place, pos, state, block })

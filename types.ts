@@ -12,15 +12,9 @@ export enum ActionType {
 export type Action = {
     pos: Vec3,
     block: Block
-} & (
-        {
-            state: number
-            type: ActionType.place | ActionType.click
-        } |
-        {
-            state?: never
-            type: ActionType.dig
-        })
+    state: number
+    type: ActionType
+}
 
 export type Coordinates = 'north' | 'south' | 'east' | 'west'
 export type ChestType = 'single' | 'left' | 'right'
