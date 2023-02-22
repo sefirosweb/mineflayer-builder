@@ -4,6 +4,7 @@
   },
   "verbose": true,
   "ignore": [
-    "test"
+    "test",
+    "missing_block_state_items.json"
   ]
 }
