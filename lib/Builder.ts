@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { Bot } from 'mineflayer'
 import { wait, equipItem } from './helper'
 import digBlockLoader from './digBlock'
@@ -6,10 +5,14 @@ import { ActionType } from '../types'
 import { actionPlace } from './ActionPlace'
 import { goActionBlock } from './goActionBlock'
 
-export const builder = (bot: Bot) => {
-    if (!bot.pathfinder) {
+export let bot: Bot
+
+export const builder = (mineflayerBot: Bot) => {
+    if (!mineflayerBot.pathfinder) {
         throw new Error('pathfinder must be loaded before builder')
     }
+
+    bot = mineflayerBot
 
     let interruptBuilding = false
     const digBlock = digBlockLoader(bot)

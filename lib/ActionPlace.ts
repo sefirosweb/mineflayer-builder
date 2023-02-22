@@ -1,12 +1,10 @@
-//@ts-nocheck
 import { Bot } from "mineflayer"
 import { goals, Movements } from "mineflayer-pathfinder"
 import { Action, blocksCanBeReplaced } from "../types"
 import { getSecondBlock } from "./ChestHelper"
 import { equipItem, wait } from "./helper"
-import mcDataLoader from 'minecraft-data'
 import interactable from "./interactable"
-import digBlockLoader from "./digBlock"
+import digBlock from "./digBlock"
 
 
 const placementRange = 3
@@ -14,9 +12,7 @@ const placementLOS = true
 const materialMin = 0
 
 export const actionPlace = async (bot: Bot, build: any, action: Action) => {
-    const digBlock = digBlockLoader(bot)
-    const mcData = mcDataLoader(bot.version)
-    const movements = new Movements(bot, mcData)
+    const movements = new Movements(bot, bot.registry)
     movements.canDig = false
     movements.maxDropDown = 10
     movements.allowSprinting = false
@@ -27,7 +23,7 @@ export const actionPlace = async (bot: Bot, build: any, action: Action) => {
         bot.chat('/clear')
         await wait(1000)
     }
-    const amountItem = bot.inventory.count(item.id)
+    const amountItem = bot.inventory.count(item.id, null)
 
     if (amountItem === 0) {
         bot.chat('/give builder ' + item.name + ' 2')
@@ -67,7 +63,7 @@ export const actionPlace = async (bot: Bot, build: any, action: Action) => {
     bot.pathfinder.setMovements(movements)
     await bot.pathfinder.goto(goal)
 
-    const amount = bot.inventory.count(item.id)
+    const amount = bot.inventory.count(item.id, null)
     if (amount <= materialMin) throw Error('no_blocks')
     await equipItem(bot, item.id) // equip item after pathfinder
 
