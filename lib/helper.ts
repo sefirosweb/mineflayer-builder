@@ -1,5 +1,6 @@
 import { Bot } from "mineflayer"
 import { Vec3 } from "vec3"
+import { bot } from "./Builder"
 
 export const wait = (ms: number, fast?: boolean) => { return new Promise(resolve => setTimeout(resolve, fast ? 0 : ms)) }
 
@@ -13,11 +14,16 @@ export const faceDir = {
 }
 
 
-export const equipItem = async (bot: Bot, id_item: number) => {
+export const equipItem = async (id_item: number) => {
     if (bot.heldItem?.type === id_item) return
-    const item = bot.inventory.findInventoryItem(id_item, null, true)
+    const itemData = bot.registry.items[id_item]
+    let item = bot.inventory.findInventoryItem(id_item, null, false)
     if (!item) {
-        throw Error('No items to equip')
+        // throw Error('No items to equip')
+        bot.chat(`/clear`)
+        bot.chat(`/give @p ${itemData.name}`)
+        await wait(200)
+        item = bot.inventory.findInventoryItem(id_item, null, false)
     }
     await bot.equip(item.type, 'hand')
 }

@@ -1,20 +1,22 @@
-const { builder } = require('mineflayer-builder')
+import { builder } from 'mineflayer-builder'
+import path from 'path'
+import fs from 'fs'
+import mineflayer from 'mineflayer'
 const { pathfinder } = require('mineflayer-pathfinder')
-const mineflayer = require('mineflayer')
 const { Vec3 } = require('vec3')
 const assert = require('assert')
 
 const bot = mineflayer.createBot({
   host: process.argv[2] || 'localhost',
   port: parseInt(process.argv[3]) || 25565,
-  username: process.argv[4] || 'builder',
+  username: process.argv[4] || 'Builder',
   password: process.argv[5]
 })
 
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(builder)
 
-function wait (ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
 
 bot.once('spawn', async () => {
   while (!bot.entity.onGround) {
@@ -82,7 +84,8 @@ bot.once('spawn', async () => {
     }
   }
 
-  console.log(JSON.stringify(facingData, null, 2))
+  const json = JSON.stringify(facingData, null, 2);
+  fs.writeFileSync(path.join(__dirname, 'facing_data.json'), json, 'utf8');
 
   bot.end()
 })

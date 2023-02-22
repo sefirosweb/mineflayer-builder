@@ -33,5 +33,7 @@ bot.once('spawn', async () => {
 
     fs.writeFileSync(path.join(__dirname, 'missing_block_state_items.json'), json, 'utf8');
 
+    bot.end()
+
 })
 

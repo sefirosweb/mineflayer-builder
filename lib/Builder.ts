@@ -20,7 +20,7 @@ export const builder = (mineflayerBot: Bot) => {
 
     bot.builder.currentBuild = null
 
-    bot.builder.equipItem = (id: number) => equipItem(bot, id)
+    bot.builder.equipItem = equipItem
 
     bot.builder.stop = function () {
         console.log('Stopped building')
