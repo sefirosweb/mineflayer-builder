@@ -1,4 +1,8 @@
 node_modules/
 package-lock.json
-.vscode
-/mineflayer-pathfinder/
+
+# Folder of tests
+versions/
+server_jars/
+test/server_*
+test/common/server_*

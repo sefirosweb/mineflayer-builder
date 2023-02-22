@@ -1,7 +1,9 @@
 {
   "execMap": {
-    "ts": "ts-node"
+    "ts": "node --inspect --require ts-node/register"
   },
-  "verbose": false,
-  "ignore": []
+  "verbose": true,
+  "ignore": [
+    "test"
+  ]
 }
