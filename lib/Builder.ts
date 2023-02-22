@@ -1,6 +1,6 @@
 import { Bot } from 'mineflayer'
 import { wait, equipItem } from './helper'
-import digBlockLoader from './digBlock'
+import { digBlock } from './digBlock'
 import { ActionType } from '../types'
 import { actionPlace } from './ActionPlace'
 import { goActionBlock } from './goActionBlock'
@@ -15,7 +15,6 @@ export const builder = (mineflayerBot: Bot) => {
     bot = mineflayerBot
 
     let interruptBuilding = false
-    const digBlock = digBlockLoader(bot)
 
     bot.builder = {}
 
@@ -82,13 +81,13 @@ export const builder = (mineflayerBot: Bot) => {
                     await actionPlace(bot, build, action)
                     build.removeAction(action)
                 } else if (action.type === ActionType.dig) {
-                    await goActionBlock(bot, build, action)
+                    await goActionBlock(build, action)
                     await digBlock(action.pos)
                     await wait(500)
                     build.removeAction(action)
                 } else if (action.type === ActionType.click) {
 
-                    await goActionBlock(bot, build, action)
+                    await goActionBlock(build, action)
                     await bot.lookAt(action.pos)
                     const block = bot.blockAt(action.pos)
                     if (!block) throw Error('Block not found!')

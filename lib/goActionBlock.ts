@@ -1,15 +1,11 @@
-//@ts-nocheck
-import { Bot } from "mineflayer"
 import { goals, Movements } from "mineflayer-pathfinder"
 import { Action, ActionType } from "../types"
-import mcDataLoader from 'minecraft-data'
-
+import { bot } from './Builder'
 
 export const blockForPlace = ['stone', 'cobblestone', 'dirt', 'andesite', 'diorite', 'granite', 'grass_block']
 
-export const goActionBlock = async (bot: Bot, build: any, action: Action) => {
-    const mcData = mcDataLoader(bot.version)
-    const movements = new Movements(bot, mcData)
+export const goActionBlock = async (build: any, action: Action) => {
+    const movements = new Movements(bot, bot.registry)
     movements.canDig = false
     movements.maxDropDown = 10
     movements.allowSprinting = false
