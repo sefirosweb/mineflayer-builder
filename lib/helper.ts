@@ -13,11 +13,11 @@ export const faceDir = {
 }
 
 
-export const equipItem = async (bot: Bot, id: number) => {
-    if (bot.heldItem?.type === id) return
-    const item = bot.inventory.findInventoryItem(id, null, true)
+export const equipItem = async (bot: Bot, id_item: number) => {
+    if (bot.heldItem?.type === id_item) return
+    const item = bot.inventory.findInventoryItem(id_item, null, true)
     if (!item) {
-        throw Error('no_blocks')
+        throw Error('No items to equip')
     }
     await bot.equip(item.type, 'hand')
 }

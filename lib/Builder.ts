@@ -1,8 +1,6 @@
 //@ts-nocheck
 import { Bot } from 'mineflayer'
 import { wait, equipItem } from './helper'
-import { goals } from 'mineflayer-pathfinder'
-
 import digBlockLoader from './digBlock'
 import { ActionType } from '../types'
 import { actionPlace } from './ActionPlace'
@@ -16,12 +14,8 @@ export const builder = (bot: Bot) => {
     let interruptBuilding = false
     const digBlock = digBlockLoader(bot)
 
-    //@ts-ignore
-
-    //@ts-ignore
     bot.builder = {}
 
-    //@ts-ignore
     bot.builder.currentBuild = null
 
     bot.builder.equipItem = (id: number) => equipItem(bot, id)
@@ -40,7 +34,7 @@ export const builder = (bot: Bot) => {
     }
 
     bot.builder.continue = () => {
-        bot.builder.currentBuild.updateActions()
+        bot.builder.currentBuild?.updateActions()
         if (!bot.builder.currentBuild) return console.log('Nothing to continue building')
         bot.builder.build(bot.builder.currentBuild)
     }
@@ -94,6 +88,7 @@ export const builder = (bot: Bot) => {
                     await goActionBlock(bot, build, action)
                     await bot.lookAt(action.pos)
                     const block = bot.blockAt(action.pos)
+                    if (!block) throw Error('Block not found!')
                     await bot.activateBlock(block)
                     await wait(500)
                     build.removeAction(action)

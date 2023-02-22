@@ -22,6 +22,8 @@ export type Builder = {
     pause: () => void
     continue: () => void
     build: (build: Build) => void
+    equipItem: (id_item: number) => Promise<void>
+    currentBuild: Build | null
 }
 
 declare module 'mineflayer' {
