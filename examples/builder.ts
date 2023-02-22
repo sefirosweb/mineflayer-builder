@@ -1,36 +1,37 @@
-//@ts-nocheck
-import { builder, Build } from 'mineflayer-builder'
+import { builder, Build, Builder } from 'mineflayer-builder'
 import { Schematic } from 'prismarine-schematic'
-const path = require('path')
-const fs = require('fs').promises
-const { pathfinder } = require('mineflayer-pathfinder')
-const mineflayer = require('mineflayer')
-const { Vec3 } = require('vec3')
-const mineflayerViewer = require('prismarine-viewer').mineflayer
+import path from 'path'
+import fs from 'fs'
+import { pathfinder } from 'mineflayer-pathfinder'
+import mineflayer, { Bot } from 'mineflayer'
+import { Vec3 } from 'vec3'
+import { wait } from '../lib/helper'
+
+type CustomBot = Bot & Builder
 
 const bot = mineflayer.createBot({
   host: process.argv[2] || 'localhost',
   port: parseInt(process.argv[3]) || 25565,
-  username: process.argv[4] || 'builder',
+  username: process.argv[4] || 'Builder',
   password: process.argv[5]
-})
+}) as CustomBot
 
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(builder)
 
-function wait(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)) }
+
 
 bot.once('spawn', async () => {
 
   bot.chat('/gamemode creative')
   // bot.chat('/teleport Lordvivi')
-  // bot.chat('/fill 25 -60 25 -25 -50 -25 air')
+  bot.chat('/fill 25 -60 25 -25 -50 -25 air')
   bot.chat('/time set day')
 
   bot.on('path_update', (r: any) => {
     const path = [bot.entity.position.offset(0, 0.5, 0)]
     for (const node of r.path) {
-      path.push({ x: node.x, y: node.y + 0.5, z: node.z })
+      path.push(new Vec3(node.x, node.y + 0.5, node.z))
     }
   })
 
@@ -59,7 +60,7 @@ bot.once('spawn', async () => {
   build('test.schem')
 })
 
-async function build(name: string) {
+const build = async (name: string) => {
   const schematicName = !name.endsWith('.schem') ? name + '.schem' : name
   const filePath: string = path.resolve(path.join(__dirname, '..', 'schematics', schematicName))
   if (!fileExists(filePath)) {
@@ -67,7 +68,8 @@ async function build(name: string) {
     return
   }
 
-  const schematic = await Schematic.read(await fs.readFile(filePath), bot.version)
+  const fileLoaded = fs.readFileSync(filePath)
+  const schematic = await Schematic.read(fileLoaded, bot.version)
   const at = new Vec3(0, -60, 0)
   // bot.entity.position.floored()
   bot.chat(`Building at ${at.x} ${at.y} ${at.z}`)

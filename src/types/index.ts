@@ -1,5 +1,6 @@
 import { Vec3 } from "vec3"
-import { Bot as MineflayerBot  } from 'mineflayer'
+import { Bot as MineflayerBot } from 'mineflayer'
+import { Build } from '../../lib/Build'
 
 export interface Bot extends MineflayerBot {
     test: {
@@ -12,5 +13,19 @@ export interface Bot extends MineflayerBot {
         resetState: () => Promise<void>
         placeBlock: (slot: number, position: Vec3) => void
         wait: (ms: number) => Promise<void>
+    },
+    builder: Builder
+}
+
+export type Builder = {
+    stop: () => void
+    pause: () => void
+    continue: () => void
+    build: (build: Build) => void
+}
+
+declare module 'mineflayer' {
+    interface Bot {
+        builder: Builder
     }
 }

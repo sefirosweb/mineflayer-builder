@@ -1,7 +1,7 @@
 import { Bot } from "mineflayer"
 import { Vec3 } from "vec3"
 
-export const wait = (ms: number, fast: boolean) => { return new Promise(resolve => setTimeout(resolve, fast ? 0 : ms)) }
+export const wait = (ms: number, fast?: boolean) => { return new Promise(resolve => setTimeout(resolve, fast ? 0 : ms)) }
 
 export const faceDir = {
     down: new Vec3(0, -1, 0),
