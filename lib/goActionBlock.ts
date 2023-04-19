@@ -11,7 +11,7 @@ export const goActionBlock = async (build: any, action: Action) => {
     movements.allowSprinting = false
     let goal
     if (action.type === ActionType.place) {
-        const properties = build.properties[action.state]
+        const properties = action.block.getProperties()
         const { facing, is3D } = build.getFacing(action.state, properties.facing)
         let faces = build.getPossibleDirections(action)
         const half = properties.half ? properties.half : properties.type

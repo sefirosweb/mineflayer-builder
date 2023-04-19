@@ -1,18 +1,18 @@
-//@ts-nocheck
 import { Vec3 } from 'vec3'
-import minecraftDataLoader, { Item } from 'minecraft-data'
-import { Block } from 'prismarine-block'
+import { Item } from 'minecraft-data'
+import prismarineBlock, { Block } from 'prismarine-block'
 import facingData from './facingData'
 import { Bot } from 'mineflayer'
-import { Action, ActionType, BlockProperty, blocksCanBeReplaced, Facing } from '../types'
+import { Action, ActionType, blocksCanBeReplaced, Facing } from '../types'
 import { getSecondBlock } from './ChestHelper'
 import blocksWithVariablePropierties from './blocksWithVariablePropierties'
+
+import ignoreStateBlocks from './ignoreStateBlocks'
 
 //@ts-ignore
 import { Schematic } from 'prismarine-schematic'
 //@ts-ignore
 import { getShapeFaceCenters } from 'mineflayer-pathfinder/lib/shapes'
-import ignoreStateBlocks from './ignoreStateBlocks'
 
 export class Build {
   bot: Bot
@@ -22,19 +22,19 @@ export class Build {
   max: Vec3
   breakNoneAir: boolean
   actions: Array<Action>
-  blocks: Record<number, Block>
-  items: Record<number, Item>
-  properties: Record<number, BlockProperty>
 
   world: any
   currentLayer: number | undefined
+  prismarineBlock: any
 
   constructor(bot: Bot, schematic: Schematic, world: any, at: Vec3) {
     this.bot = bot
     this.schematic = schematic
-    //@ts-ignore
     this.world = world
     this.at = at
+
+    //@ts-ignore
+    this.prismarineBlock = prismarineBlock(schematic.version)
 
     this.min = at.plus(schematic.offset)
     this.max = this.min.plus(schematic.size)
@@ -44,34 +44,21 @@ export class Build {
     this.actions = []
     this.updateActions()
 
-    // Cache of blockstate to block
-    const Block = require('prismarine-block')(schematic.version)
-    const mcData = minecraftDataLoader(schematic.version)
-    this.blocks = {}
-    this.properties = {}
-    this.items = {}
-    for (const stateId of schematic.palette) {
-      const block = Block.fromStateId(stateId, 0)
-      this.blocks[stateId] = block
-      this.properties[stateId] = block.getProperties()
-      this.items[stateId] = this.findItem(mcData, block.name)
-    }
-
     // How many actions ?
     // console.log(this.actions)
   }
 
-  findItem(mcData, name: string) {
+  findItem(name: string): Item {
 
-    if (name === 'redstone_wall_torch') {
-      return mcData.itemsByName['redstone_torch']
-    }
+    // if (name === 'redstone_wall_torch') {
+    //   return this.bot.registry.itemsByName['redstone_torch']
+    // }
 
-    if (name === 'redstone_wire') {
-      return mcData.itemsByName['redstone']
-    }
+    // if (name === 'redstone_wire') {
+    //   return this.bot.registry.itemsByName['redstone']
+    // }
 
-    return mcData.itemsByName[name]
+    return this.bot.registry.itemsByName[name]
   }
 
   updateActions() {
@@ -82,6 +69,8 @@ export class Build {
         for (cursor.x = this.min.x; cursor.x < this.max.x; cursor.x++) {
           const blockSchema = this.schematic.getBlock(cursor.minus(this.at))
           const blockWorld = this.bot.blockAt(cursor) as Block
+          const item = this.findItem(blockSchema.name)
+
 
           const stateInWorld = this.world.getBlockStateId(cursor)
           const wantedState = this.schematic.getBlockStateId(cursor.minus(this.at))
@@ -89,7 +78,24 @@ export class Build {
 
             if (wantedState === 0) {
               if (!this.breakNoneAir) continue
-              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), state: wantedState, block: blockSchema })
+              this.actions.push({
+                type: ActionType.dig,
+                pos: cursor.clone(),
+                state: wantedState,
+                block: blockSchema,
+                item
+              })
+              continue
+            }
+
+            if (blockSchema?.name === 'lava') {
+              this.actions.push({
+                type: ActionType.lava,
+                pos: cursor.clone(),
+                state: wantedState,
+                block: blockSchema,
+                item
+              })
               continue
             }
 
@@ -102,22 +108,33 @@ export class Build {
               blockSchema?.name !== blockWorld?.name
               && !blocksCanBeReplaced.includes(blockWorld?.name)
             ) {
-              this.actions.push({ type: ActionType.dig, pos: cursor.clone(), state: wantedState, block: blockSchema })
+              this.actions.push({
+                type: ActionType.dig,
+                pos: cursor.clone(),
+                state: wantedState,
+                block: blockSchema,
+                item
+              })
             }
 
             if (blockSchema?.name === 'chest') { // Check sides block are correct
-              this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState)
+              this.checkChestAction(blockSchema, blockWorld, cursor.clone(), wantedState, item)
               continue
             }
 
 
             if (Object.keys(blocksWithVariablePropierties).includes(blockSchema.name)) {
-              this.checkIntaractableBlocks(blockSchema, blockWorld, cursor.clone(), wantedState, stateInWorld)
+              this.checkIntaractableBlocks(blockSchema, blockWorld, cursor.clone(), wantedState, item)
               continue
             }
 
-            this.actions.push({ type: ActionType.place, pos: cursor.clone(), state: wantedState, block: blockSchema })
-
+            this.actions.push({
+              type: ActionType.place,
+              pos: cursor.clone(),
+              state: wantedState,
+              block: blockSchema,
+              item
+            })
 
           }
         }
@@ -125,30 +142,49 @@ export class Build {
     }
   }
 
-  checkIntaractableBlocks(block: Block, blockWorld: Block, pos: Vec3, state: number, stateInWorld: number) {
+  checkIntaractableBlocks(block: Block, blockWorld: Block, pos: Vec3, state: number, item: Item) {
 
     const { prop, defaultValue } = blocksWithVariablePropierties[block.name]
 
     if (block?.name !== blockWorld?.name) {
-      this.actions.push({ type: ActionType.place, pos, state, block })
+      this.actions.push({
+        type: ActionType.place,
+        pos,
+        state,
+        block,
+        item,
+      })
     }
 
     const expectedProp = block.getProperties()[prop]
 
     if (block?.name !== blockWorld?.name && expectedProp !== defaultValue) {
-      this.actions.push({ type: ActionType.click, pos, state, block })
+      this.actions.push({
+        type: ActionType.click,
+        pos,
+        state,
+        block,
+        item,
+      })
       return
     }
 
     if (block?.name === blockWorld?.name && expectedProp !== blockWorld.getProperties()[prop]) {
-      this.actions.push({ type: ActionType.click, pos, state, block })
+      this.actions.push({
+        type: ActionType.click,
+        pos,
+        state,
+        block,
+        item,
+      })
       return
     }
   }
 
-  checkChestAction(block: Block, blockWorld: Block, pos: Vec3, state: number) {
+  checkChestAction(block: Block, blockWorld: Block, pos: Vec3, state: number, item: Item) {
 
     const { facing, type } = block.getProperties()
+    //@ts-ignore
     const secondblock = getSecondBlock(facing, type)
     const secondBlockWorld = this.bot.blockAt(blockWorld.position.plus(secondblock))
 
@@ -156,20 +192,29 @@ export class Build {
       blockWorld.name === 'chest' &&
       secondBlockWorld?.name === 'chest'
     ) {
-      this.actions.push({ type: ActionType.dig, pos, state, block })
+      this.actions.push({
+        type: ActionType.dig,
+        pos,
+        state,
+        block,
+        item
+      })
     }
 
-    this.actions.push({ type: ActionType.place, pos, state, block })
+    this.actions.push({
+      type: ActionType.place,
+      pos,
+      state,
+      block,
+      item
+    })
 
   }
 
-  getItemForState(stateId: number) {
-    return this.items[stateId]
-  }
 
   getFacing(stateId: number, facing?: Facing) {
     if (!facing) return { facing: null, faceDirection: false, is3D: false }
-    const block = this.blocks[stateId]
+    const block = this.prismarineBlock.fromStateId(stateId, 0)
     const data = facingData[block.name]
     if (data.inverted) {
       if (facing === 'up') facing = 'down'
@@ -185,7 +230,7 @@ export class Build {
   getPossibleDirections(action: Action) {
     const { pos, block, state } = action
     const faces = [true, true, true, true, true, true]
-    const properties = this.properties[state]
+    const properties = block.getProperties()
 
     if (properties.axis) {
       if (properties.axis === 'x') faces[0] = faces[1] = faces[2] = faces[3] = false
@@ -247,6 +292,8 @@ export class Build {
   getAvailableActions() {
     return this.actions.filter(action => {
       if (action.type === ActionType.dig) return true
+      if (action.type === ActionType.lava) return false
+      if (action.type === ActionType.water) return false
       if (this.getPossibleDirections(action).length > 0) return true
       return false
     })

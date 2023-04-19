@@ -4,7 +4,8 @@ import { Action, blocksCanBeReplaced } from "../types"
 import { getSecondBlock } from "./ChestHelper"
 import { equipItem, wait } from "./helper"
 import interactable from "./interactable"
-import digBlock from "./digBlock"
+import { digBlock } from "./digBlock"
+import { Item } from "minecraft-data"
 
 
 const placementRange = 3
@@ -17,8 +18,7 @@ export const actionPlace = async (bot: Bot, build: any, action: Action) => {
     movements.maxDropDown = 10
     movements.allowSprinting = false
 
-
-    const item = build.getItemForState(action.state)
+    const item = action.item as Item
     if (bot.inventory.items().length > 30) {
         bot.chat('/clear')
         await wait(1000)
@@ -31,7 +31,7 @@ export const actionPlace = async (bot: Bot, build: any, action: Action) => {
 
     // console.log('Selecting ' + item.displayName)
 
-    const properties = build.properties[action.state]
+    const properties = action.block.getProperties()
     const half = properties.half ? properties.half : properties.type
 
     let faces = build.getPossibleDirections(action)
@@ -65,7 +65,8 @@ export const actionPlace = async (bot: Bot, build: any, action: Action) => {
 
     const amount = bot.inventory.count(item.id, null)
     if (amount <= materialMin) throw Error('no_blocks')
-    await equipItem(bot, item.id) // equip item after pathfinder
+
+    await equipItem(item.id)
 
     const faceAndRef = goal.getFaceAndRef(bot.entity.position.floored().offset(0.5, 1.6, 0.5))
     if (!faceAndRef) {
