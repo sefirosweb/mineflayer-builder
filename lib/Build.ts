@@ -39,6 +39,12 @@ export class Build {
     this.min = at.plus(schematic.offset)
     this.max = this.min.plus(schematic.size)
 
+    const diff = this.min.y - (this.at.y)
+    this.at.y -= diff
+
+    this.min = at.plus(schematic.offset)
+    this.max = this.min.plus(schematic.size)
+
     this.breakNoneAir = true
 
     this.actions = []
