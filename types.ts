@@ -1,12 +1,15 @@
 import { Block } from "prismarine-block"
 import { Vec3 } from "vec3"
+import { Item } from 'minecraft-data'
 
 export const blocksCanBeReplaced = ['air', 'cave_air', 'lava', 'water', 'bubble_column', 'seagrass', 'tall_seagrass', 'kelp_plant']
 
 export enum ActionType {
-    dig = 0,
-    place = 1,
-    click = 2,
+    dig = 'dig',
+    place = 'place',
+    click = 'click',
+    water = 'water',
+    lava = 'lava'
 }
 
 export type Action = {
@@ -14,6 +17,7 @@ export type Action = {
     block: Block
     state: number
     type: ActionType
+    item: Item // Refacto when action is dig must be never
 }
 
 export type Coordinates = 'north' | 'south' | 'east' | 'west'
