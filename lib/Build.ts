@@ -56,13 +56,13 @@ export class Build {
 
   findItem(name: string): Item {
 
-    // if (name === 'redstone_wall_torch') {
-    //   return this.bot.registry.itemsByName['redstone_torch']
-    // }
+    if (name === 'redstone_wall_torch') {
+      return this.bot.registry.itemsByName['redstone_torch']
+    }
 
-    // if (name === 'redstone_wire') {
-    //   return this.bot.registry.itemsByName['redstone']
-    // }
+    if (name === 'redstone_wire') {
+      return this.bot.registry.itemsByName['redstone']
+    }
 
     return this.bot.registry.itemsByName[name]
   }
